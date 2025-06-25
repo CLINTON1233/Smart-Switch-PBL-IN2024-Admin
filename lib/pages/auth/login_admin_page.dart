@@ -126,7 +126,7 @@ class _LoginAdminPageState extends State<LoginAdminPage> {
                         },
                       ),
                       Text(
-                        'Login',
+                        'Login Admin',
                         style: GoogleFonts.oleoScriptSwashCaps(
                           fontSize: 32,
                           color: const Color(0xFF2C5C52),

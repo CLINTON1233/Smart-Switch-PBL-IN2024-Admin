@@ -4,12 +4,7 @@ import 'package:admin_smart_switch/pages/kelola%20saklar/kelola_saklar_page.dart
 import 'package:flutter/material.dart';
 import 'package:admin_smart_switch/pages/auth/login_admin_page.dart';
 import 'package:google_fonts/google_fonts.dart';
-// import 'package:admin_smart_switch/pages/education/education_page.dart';
 import 'package:flutter/services.dart';
-// import 'package:admin_smart_switch/pages/home/saklar2_page.dart';
-// import 'package:admin_smart_switch/pages/home/saklar3_page.dart';
-// import 'package:admin_smart_switch/pages/home/saklar4_page.dart';
-// import 'package:admin_smart_switch/pages/profile/profile_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 

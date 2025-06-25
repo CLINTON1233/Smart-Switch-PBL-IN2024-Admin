@@ -204,7 +204,7 @@ class _RegisterAdminPageState extends State<RegisterAdminPage> {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    'Regist Account',
+                    'Regist Account Admin',
                     style: GoogleFonts.oleoScriptSwashCaps(
                       fontSize: 20,
                       color: const Color(0xFF2C5C52),
