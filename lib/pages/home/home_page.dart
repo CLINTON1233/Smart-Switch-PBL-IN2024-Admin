@@ -1,6 +1,8 @@
+import 'package:admin_smart_switch/pages/analytics/analytics_page.dart';
 import 'package:admin_smart_switch/pages/kelola%20panduan/kelola_panduan_page.dart';
 import 'package:admin_smart_switch/pages/kelola%20pengguna/kelola_pengguna_page.dart';
 import 'package:admin_smart_switch/pages/kelola%20saklar/kelola_saklar_page.dart';
+import 'package:admin_smart_switch/pages/profile/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:admin_smart_switch/pages/auth/login_admin_page.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -105,17 +107,17 @@ class _HomePageState extends State<HomePage> {
     } else if (index == 1) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const KelolaPenggunaPage()),
+        MaterialPageRoute(builder: (context) => const HomePage()),
       );
     } else if (index == 1) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const KelolaSaklarPage()),
+        MaterialPageRoute(builder: (context) => const AnalyticsPage()),
       );
     } else if (index == 2) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const KelolaPanduanPage()),
+        MaterialPageRoute(builder: (context) => const ProfilePage()),
       );
     }
   }
