@@ -1,4 +1,4 @@
-import 'package:admin_smart_switch/pages/analytics/analytics_page.dart';
+import 'package:admin_smart_switch/pages/statistic/statistic_page.dart';
 import 'package:admin_smart_switch/pages/auth/login_admin_page.dart';
 import 'package:admin_smart_switch/pages/home/home_page.dart';
 import 'package:admin_smart_switch/pages/kelola%20pengguna/kelola_pengguna_page.dart';
@@ -32,7 +32,7 @@ class Panduan {
 class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  int _selectedIndex = 2;
+  int _selectedIndex = 0;
 
   // Controllers for form
   final TextEditingController _judulController = TextEditingController();
@@ -91,11 +91,18 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
       if (_searchController.text.isEmpty) {
         _filteredPanduan = List.from(_panduan);
       } else {
-        _filteredPanduan = _panduan
-            .where((panduan) =>
-                panduan.judul.toLowerCase().contains(_searchController.text.toLowerCase()) ||
-                panduan.isi.toLowerCase().contains(_searchController.text.toLowerCase()))
-            .toList();
+        _filteredPanduan =
+            _panduan
+                .where(
+                  (panduan) =>
+                      panduan.judul.toLowerCase().contains(
+                        _searchController.text.toLowerCase(),
+                      ) ||
+                      panduan.isi.toLowerCase().contains(
+                        _searchController.text.toLowerCase(),
+                      ),
+                )
+                .toList();
       }
     });
   }
@@ -115,7 +122,7 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
     } else if (index == 1) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const AnalyticsPage()),
+        MaterialPageRoute(builder: (context) => const StatisticPage()),
       );
     } else if (index == 2) {
       Navigator.pushReplacement(
@@ -128,7 +135,7 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
   void _showAddEditPanduanDialog({Panduan? panduan}) {
     _isEditing = panduan != null;
     _editingPanduanId = panduan?.id;
-    
+
     if (_isEditing) {
       _judulController.text = panduan!.judul;
       _isiController.text = panduan.isi;
@@ -154,14 +161,18 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: _isEditing 
-                            ? Colors.orange.withOpacity(0.1)
-                            : const Color(0xFF6BB5A6).withOpacity(0.1),
+                        color:
+                            _isEditing
+                                ? Colors.orange.withOpacity(0.1)
+                                : const Color(0xFF6BB5A6).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
                         _isEditing ? Icons.edit : Icons.add_circle,
-                        color: _isEditing ? Colors.orange : const Color(0xFF6BB5A6),
+                        color:
+                            _isEditing
+                                ? Colors.orange
+                                : const Color(0xFF6BB5A6),
                         size: 24,
                       ),
                     ),
@@ -174,7 +185,7 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
                         color: Colors.black87,
                       ),
                     ),
-                  ]
+                  ],
                 ),
                 const SizedBox(height: 20),
                 TextField(
@@ -192,12 +203,16 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(
-                        color: _isEditing ? Colors.orange : const Color(0xFF6BB5A6)
+                        color:
+                            _isEditing
+                                ? Colors.orange
+                                : const Color(0xFF6BB5A6),
                       ),
                     ),
                     prefixIcon: Icon(
                       Icons.title,
-                      color: _isEditing ? Colors.orange : const Color(0xFF6BB5A6),
+                      color:
+                          _isEditing ? Colors.orange : const Color(0xFF6BB5A6),
                     ),
                   ),
                   style: GoogleFonts.poppins(fontSize: 14),
@@ -219,12 +234,16 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(
-                        color: _isEditing ? Colors.orange : const Color(0xFF6BB5A6)
+                        color:
+                            _isEditing
+                                ? Colors.orange
+                                : const Color(0xFF6BB5A6),
                       ),
                     ),
                     prefixIcon: Icon(
                       Icons.description,
-                      color: _isEditing ? Colors.orange : const Color(0xFF6BB5A6),
+                      color:
+                          _isEditing ? Colors.orange : const Color(0xFF6BB5A6),
                     ),
                   ),
                   style: GoogleFonts.poppins(fontSize: 14),
@@ -257,7 +276,10 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
                       child: ElevatedButton(
                         onPressed: _savePanduan,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _isEditing ? Colors.orange : const Color(0xFF6BB5A6),
+                          backgroundColor:
+                              _isEditing
+                                  ? Colors.orange
+                                  : const Color(0xFF6BB5A6),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -283,14 +305,20 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
       },
     );
   }
+
   void _savePanduan() {
     if (_judulController.text.isEmpty || _isiController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Judul dan isi panduan harus diisi!', style: GoogleFonts.poppins()),
+          content: Text(
+            'Judul dan isi panduan harus diisi!',
+            style: GoogleFonts.poppins(),
+          ),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       );
       return;
@@ -306,12 +334,14 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
         }
       } else {
         // Add new guide
-        _panduan.add(Panduan(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          judul: _judulController.text,
-          isi: _isiController.text,
-          tanggalDibuat: DateTime.now(),
-        ));
+        _panduan.add(
+          Panduan(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            judul: _judulController.text,
+            isi: _isiController.text,
+            tanggalDibuat: DateTime.now(),
+          ),
+        );
       }
       _filterPanduan();
     });
@@ -320,7 +350,9 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          _isEditing ? 'Panduan berhasil diperbarui!' : 'Panduan berhasil ditambahkan!',
+          _isEditing
+              ? 'Panduan berhasil diperbarui!'
+              : 'Panduan berhasil ditambahkan!',
           style: GoogleFonts.poppins(),
         ),
         backgroundColor: _isEditing ? Colors.orange : const Color(0xFF6BB5A6),
@@ -643,15 +675,19 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: isActive ? const Color(0xFFABD3CC).withOpacity(0.1) : Colors.transparent,
+        color:
+            isActive
+                ? const Color(0xFFABD3CC).withOpacity(0.1)
+                : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
       ),
       child: ListTile(
         leading: Icon(
           icon,
-          color: isLogout
-              ? Colors.red
-              : isActive
+          color:
+              isLogout
+                  ? Colors.red
+                  : isActive
                   ? const Color(0xFF6BB5A6)
                   : Colors.grey[600],
           size: 24,
@@ -661,9 +697,10 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
           style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-            color: isLogout
-                ? Colors.red
-                : isActive
+            color:
+                isLogout
+                    ? Colors.red
+                    : isActive
                     ? const Color(0xFF6BB5A6)
                     : Colors.black87,
           ),
@@ -778,10 +815,7 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
                           fontSize: 12,
                           color: Colors.grey[500],
                         ),
-                        prefixIcon: Icon(
-                          Icons.search,
-                          color: Colors.grey[500],
-                        ),
+                        prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 14,
@@ -800,9 +834,7 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: BoxDecoration(
                 color: Colors.grey[50],
-                border: Border(
-                  bottom: BorderSide(color: Colors.grey[200]!),
-                ),
+                border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
               ),
               child: Row(
                 children: [
@@ -857,164 +889,180 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
 
             // Table Content
             Expanded(
-              child: _filteredPanduan.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[100],
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.article_outlined,
-                              size: 48,
-                              color: Colors.grey[400],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Tidak ada panduan ditemukan',
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Silakan tambah panduan baru atau ubah pencarian',
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              color: Colors.grey[500],
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : ListView.builder(
-                      padding: EdgeInsets.zero,
-                      itemCount: _filteredPanduan.length,
-                      itemBuilder: (context, index) {
-                        final panduan = _filteredPanduan[index];
-                        return Container(
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
+              child:
+                  _filteredPanduan.isEmpty
+                      ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                shape: BoxShape.circle,
                               ),
-                            ],
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              children: [
-                                // ID
-                                SizedBox(
-                                  width: 50,
-                                  child: Text(
-                                    panduan.id,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                ),
-                                // Judul Panduan
-                                Expanded(
-                                  flex: 2,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        panduan.judul,
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        'Dibuat: ${panduan.tanggalDibuat.day.toString().padLeft(2, '0')}-${panduan.tanggalDibuat.month.toString().padLeft(2, '0')}-${panduan.tanggalDibuat.year}',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 12,
-                                          color: Colors.grey[500],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                // Isi Panduan
-                                Expanded(
-                                  flex: 3,
-                                  child: Text(
-                                    panduan.isi.length > 50 
-                                        ? '${panduan.isi.substring(0, 50)}...' 
-                                        : panduan.isi,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                ),
-                                // Action Buttons
-                                SizedBox(
-                                  width: 80,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      GestureDetector(
-                                        onTap: () => _showAddEditPanduanDialog(panduan: panduan),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(6),
-                                          decoration: BoxDecoration(
-                                            color: Colors.orange.withOpacity(0.1),
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
-                                          child: Icon(
-                                            Icons.edit,
-                                            size: 16,
-                                            color: Colors.orange[700],
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      GestureDetector(
-                                        onTap: () => _showDeleteConfirmationDialog(panduan),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(6),
-                                          decoration: BoxDecoration(
-                                            color: Colors.red.withOpacity(0.1),
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
-                                          child: Icon(
-                                            Icons.delete,
-                                            size: 16,
-                                            color: Colors.red[700],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                              child: Icon(
+                                Icons.article_outlined,
+                                size: 48,
+                                color: Colors.grey[400],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Tidak ada panduan ditemukan',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Silakan tambah panduan baru atau ubah pencarian',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: Colors.grey[500],
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                      : ListView.builder(
+                        padding: EdgeInsets.zero,
+                        itemCount: _filteredPanduan.length,
+                        itemBuilder: (context, index) {
+                          final panduan = _filteredPanduan[index];
+                          return Container(
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
                                 ),
                               ],
                             ),
-                          ),
-                        );
-                      },
-                    ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                children: [
+                                  // ID
+                                  SizedBox(
+                                    width: 50,
+                                    child: Text(
+                                      panduan.id,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                  // Judul Panduan
+                                  Expanded(
+                                    flex: 2,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          panduan.judul,
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          'Dibuat: ${panduan.tanggalDibuat.day.toString().padLeft(2, '0')}-${panduan.tanggalDibuat.month.toString().padLeft(2, '0')}-${panduan.tanggalDibuat.year}',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 12,
+                                            color: Colors.grey[500],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  // Isi Panduan
+                                  Expanded(
+                                    flex: 3,
+                                    child: Text(
+                                      panduan.isi.length > 50
+                                          ? '${panduan.isi.substring(0, 50)}...'
+                                          : panduan.isi,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 14,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                  // Action Buttons
+                                  SizedBox(
+                                    width: 80,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        GestureDetector(
+                                          onTap:
+                                              () => _showAddEditPanduanDialog(
+                                                panduan: panduan,
+                                              ),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(6),
+                                            decoration: BoxDecoration(
+                                              color: Colors.orange.withOpacity(
+                                                0.1,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                            ),
+                                            child: Icon(
+                                              Icons.edit,
+                                              size: 16,
+                                              color: Colors.orange[700],
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        GestureDetector(
+                                          onTap:
+                                              () =>
+                                                  _showDeleteConfirmationDialog(
+                                                    panduan,
+                                                  ),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(6),
+                                            decoration: BoxDecoration(
+                                              color: Colors.red.withOpacity(
+                                                0.1,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                            ),
+                                            child: Icon(
+                                              Icons.delete,
+                                              size: 16,
+                                              color: Colors.red[700],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
             ),
 
             // Summary Footer
@@ -1075,7 +1123,7 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.analytics_outlined),
             activeIcon: Icon(Icons.analytics),
-            label: 'Analytics',
+            label: 'Statistic',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),

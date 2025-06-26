@@ -1,4 +1,4 @@
-import 'package:admin_smart_switch/pages/analytics/analytics_page.dart';
+import 'package:admin_smart_switch/pages/statistic/statistic_page.dart';
 import 'package:admin_smart_switch/pages/auth/login_admin_page.dart';
 import 'package:admin_smart_switch/pages/home/home_page.dart';
 import 'package:admin_smart_switch/pages/kelola%20panduan/kelola_panduan_page.dart';
@@ -99,11 +99,18 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
       if (_searchController.text.isEmpty) {
         _filteredUsers = List.from(_users);
       } else {
-        _filteredUsers = _users
-            .where((user) =>
-                user.username.toLowerCase().contains(_searchController.text.toLowerCase()) ||
-                user.email.toLowerCase().contains(_searchController.text.toLowerCase()))
-            .toList();
+        _filteredUsers =
+            _users
+                .where(
+                  (user) =>
+                      user.username.toLowerCase().contains(
+                        _searchController.text.toLowerCase(),
+                      ) ||
+                      user.email.toLowerCase().contains(
+                        _searchController.text.toLowerCase(),
+                      ),
+                )
+                .toList();
       }
     });
   }
@@ -123,7 +130,7 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
     } else if (index == 1) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const AnalyticsPage()),
+        MaterialPageRoute(builder: (context) => const StatisticPage()),
       );
     } else if (index == 2) {
       Navigator.pushReplacement(
@@ -133,11 +140,10 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
     }
   }
 
-
   void _showAddEditUserDialog({User? user}) {
     _isEditing = user != null;
     _editingUserId = user?.id;
-    
+
     if (_isEditing) {
       _usernameController.text = user!.username;
       _emailController.text = user.email;
@@ -165,14 +171,18 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: _isEditing 
-                            ? Colors.orange.withOpacity(0.1)
-                            : const Color(0xFF6BB5A6).withOpacity(0.1),
+                        color:
+                            _isEditing
+                                ? Colors.orange.withOpacity(0.1)
+                                : const Color(0xFF6BB5A6).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
                         _isEditing ? Icons.edit : Icons.add_circle,
-                        color: _isEditing ? Colors.orange : const Color(0xFF6BB5A6),
+                        color:
+                            _isEditing
+                                ? Colors.orange
+                                : const Color(0xFF6BB5A6),
                         size: 24,
                       ),
                     ),
@@ -203,12 +213,16 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(
-                        color: _isEditing ? Colors.orange : const Color(0xFF6BB5A6)
+                        color:
+                            _isEditing
+                                ? Colors.orange
+                                : const Color(0xFF6BB5A6),
                       ),
                     ),
                     prefixIcon: Icon(
                       Icons.person,
-                      color: _isEditing ? Colors.orange : const Color(0xFF6BB5A6),
+                      color:
+                          _isEditing ? Colors.orange : const Color(0xFF6BB5A6),
                     ),
                   ),
                   style: GoogleFonts.poppins(fontSize: 14),
@@ -229,12 +243,16 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(
-                        color: _isEditing ? Colors.orange : const Color(0xFF6BB5A6)
+                        color:
+                            _isEditing
+                                ? Colors.orange
+                                : const Color(0xFF6BB5A6),
                       ),
                     ),
                     prefixIcon: Icon(
                       Icons.email,
-                      color: _isEditing ? Colors.orange : const Color(0xFF6BB5A6),
+                      color:
+                          _isEditing ? Colors.orange : const Color(0xFF6BB5A6),
                     ),
                   ),
                   style: GoogleFonts.poppins(fontSize: 14),
@@ -244,7 +262,10 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
                   controller: _passwordController,
                   obscureText: true,
                   decoration: InputDecoration(
-                    labelText: _isEditing ? 'Password Baru (kosongkan jika tidak diubah)' : 'Password',
+                    labelText:
+                        _isEditing
+                            ? 'Password Baru (kosongkan jika tidak diubah)'
+                            : 'Password',
                     labelStyle: GoogleFonts.poppins(
                       color: Colors.grey[600],
                       fontSize: 14,
@@ -256,12 +277,16 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(
-                        color: _isEditing ? Colors.orange : const Color(0xFF6BB5A6)
+                        color:
+                            _isEditing
+                                ? Colors.orange
+                                : const Color(0xFF6BB5A6),
                       ),
                     ),
                     prefixIcon: Icon(
                       Icons.lock,
-                      color: _isEditing ? Colors.orange : const Color(0xFF6BB5A6),
+                      color:
+                          _isEditing ? Colors.orange : const Color(0xFF6BB5A6),
                     ),
                   ),
                   style: GoogleFonts.poppins(fontSize: 14),
@@ -294,7 +319,10 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
                       child: ElevatedButton(
                         onPressed: _saveUser,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _isEditing ? Colors.orange : const Color(0xFF6BB5A6),
+                          backgroundColor:
+                              _isEditing
+                                  ? Colors.orange
+                                  : const Color(0xFF6BB5A6),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -322,15 +350,20 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
   }
 
   void _saveUser() {
-    if (_usernameController.text.isEmpty || 
-        _emailController.text.isEmpty || 
+    if (_usernameController.text.isEmpty ||
+        _emailController.text.isEmpty ||
         (!_isEditing && _passwordController.text.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Semua field harus diisi!', style: GoogleFonts.poppins()),
+          content: Text(
+            'Semua field harus diisi!',
+            style: GoogleFonts.poppins(),
+          ),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       );
       return;
@@ -349,13 +382,15 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
         }
       } else {
         // Add new user
-        _users.add(User(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          username: _usernameController.text,
-          email: _emailController.text,
-          password: '••••••••',
-          joinDate: DateTime.now(),
-        ));
+        _users.add(
+          User(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            username: _usernameController.text,
+            email: _emailController.text,
+            password: '••••••••',
+            joinDate: DateTime.now(),
+          ),
+        );
       }
       _filterUsers();
     });
@@ -364,7 +399,9 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          _isEditing ? 'Pengguna berhasil diperbarui!' : 'Pengguna berhasil ditambahkan!',
+          _isEditing
+              ? 'Pengguna berhasil diperbarui!'
+              : 'Pengguna berhasil ditambahkan!',
           style: GoogleFonts.poppins(),
         ),
         backgroundColor: _isEditing ? Colors.orange : const Color(0xFF6BB5A6),
@@ -474,7 +511,8 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
   }
 
   void _deleteUser(String userId) {
-    String deletedUsername = _users.firstWhere((user) => user.id == userId).username;
+    String deletedUsername =
+        _users.firstWhere((user) => user.id == userId).username;
     setState(() {
       _users.removeWhere((user) => user.id == userId);
       _filterUsers();
@@ -687,15 +725,19 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: isActive ? const Color(0xFFABD3CC).withOpacity(0.1) : Colors.transparent,
+        color:
+            isActive
+                ? const Color(0xFFABD3CC).withOpacity(0.1)
+                : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
       ),
       child: ListTile(
         leading: Icon(
           icon,
-          color: isLogout
-              ? Colors.red
-              : isActive
+          color:
+              isLogout
+                  ? Colors.red
+                  : isActive
                   ? const Color(0xFF6BB5A6)
                   : Colors.grey[600],
           size: 24,
@@ -705,9 +747,10 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
           style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-            color: isLogout
-                ? Colors.red
-                : isActive
+            color:
+                isLogout
+                    ? Colors.red
+                    : isActive
                     ? const Color(0xFF6BB5A6)
                     : Colors.black87,
           ),
@@ -822,10 +865,7 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
                           fontSize: 12,
                           color: Colors.grey[500],
                         ),
-                        prefixIcon: Icon(
-                          Icons.search,
-                          color: Colors.grey[500],
-                        ),
+                        prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 14,
@@ -844,9 +884,7 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: BoxDecoration(
                 color: Colors.grey[50],
-                border: Border(
-                  bottom: BorderSide(color: Colors.grey[200]!),
-                ),
+                border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
               ),
               child: Row(
                 children: [
@@ -910,171 +948,187 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
 
             // Table Content
             Expanded(
-              child: _filteredUsers.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[100],
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.people_outline,
-                              size: 48,
-                              color: Colors.grey[400],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Tidak ada pengguna ditemukan',
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Silakan tambah pengguna baru atau ubah pencarian',
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              color: Colors.grey[500],
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : ListView.builder(
-                      padding: EdgeInsets.zero,
-                      itemCount: _filteredUsers.length,
-                      itemBuilder: (context, index) {
-                        final user = _filteredUsers[index];
-                        return Container(
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
+              child:
+                  _filteredUsers.isEmpty
+                      ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                shape: BoxShape.circle,
                               ),
-                            ],
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              children: [
-                                // ID
-                                SizedBox(
-                                  width: 50,
-                                  child: Text(
-                                    user.id,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                ),
-                                // Username
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        user.username,
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        'User ID: ${user.id}',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 12,
-                                          color: Colors.grey[500],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                // Email
-                                Expanded(
-                                  child: Text(
-                                    user.email,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                ),
-                                // Join Date
-                                SizedBox(
-                                  width: 100,
-                                  child: Text(
-                                    '${user.joinDate.day.toString().padLeft(2, '0')}-${user.joinDate.month.toString().padLeft(2, '0')}-${user.joinDate.year}',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                                ),
-                                // Action Buttons
-                                SizedBox(
-                                  width: 80,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      GestureDetector(
-                                        onTap: () => _showAddEditUserDialog(user: user),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(6),
-                                          decoration: BoxDecoration(
-                                            color: Colors.orange.withOpacity(0.1),
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
-                                          child: Icon(
-                                            Icons.edit,
-                                            size: 16,
-                                            color: Colors.orange[700],
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      GestureDetector(
-                                        onTap: () => _showDeleteConfirmationDialog(user),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(6),
-                                          decoration: BoxDecoration(
-                                            color: Colors.red.withOpacity(0.1),
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
-                                          child: Icon(
-                                            Icons.delete,
-                                            size: 16,
-                                            color: Colors.red[700],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                              child: Icon(
+                                Icons.people_outline,
+                                size: 48,
+                                color: Colors.grey[400],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Tidak ada pengguna ditemukan',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Silakan tambah pengguna baru atau ubah pencarian',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: Colors.grey[500],
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                      : ListView.builder(
+                        padding: EdgeInsets.zero,
+                        itemCount: _filteredUsers.length,
+                        itemBuilder: (context, index) {
+                          final user = _filteredUsers[index];
+                          return Container(
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
                                 ),
                               ],
                             ),
-                          ),
-                        );
-                      },
-                    ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                children: [
+                                  // ID
+                                  SizedBox(
+                                    width: 50,
+                                    child: Text(
+                                      user.id,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                  // Username
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          user.username,
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          'User ID: ${user.id}',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 12,
+                                            color: Colors.grey[500],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  // Email
+                                  Expanded(
+                                    child: Text(
+                                      user.email,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 14,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                  // Join Date
+                                  SizedBox(
+                                    width: 100,
+                                    child: Text(
+                                      '${user.joinDate.day.toString().padLeft(2, '0')}-${user.joinDate.month.toString().padLeft(2, '0')}-${user.joinDate.year}',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ),
+                                  // Action Buttons
+                                  SizedBox(
+                                    width: 80,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        GestureDetector(
+                                          onTap:
+                                              () => _showAddEditUserDialog(
+                                                user: user,
+                                              ),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(6),
+                                            decoration: BoxDecoration(
+                                              color: Colors.orange.withOpacity(
+                                                0.1,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                            ),
+                                            child: Icon(
+                                              Icons.edit,
+                                              size: 16,
+                                              color: Colors.orange[700],
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        GestureDetector(
+                                          onTap:
+                                              () =>
+                                                  _showDeleteConfirmationDialog(
+                                                    user,
+                                                  ),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(6),
+                                            decoration: BoxDecoration(
+                                              color: Colors.red.withOpacity(
+                                                0.1,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                            ),
+                                            child: Icon(
+                                              Icons.delete,
+                                              size: 16,
+                                              color: Colors.red[700],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
             ),
 
             // Summary Footer
@@ -1135,7 +1189,7 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.analytics_outlined),
             activeIcon: Icon(Icons.analytics),
-            label: 'Analytics',
+            label: 'Statistic',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),

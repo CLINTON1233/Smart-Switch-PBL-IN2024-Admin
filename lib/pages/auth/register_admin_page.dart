@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:admin_smart_switch/pages/auth/login_admin_page.dart';
 import 'package:flutter/services.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RegisterAdminPage extends StatefulWidget {
   const RegisterAdminPage({super.key});
@@ -86,21 +88,56 @@ class _RegisterAdminPageState extends State<RegisterAdminPage> {
       _isLoading = true;
     });
 
-    await Future.delayed(const Duration(seconds: 2));
+    final username = usernameController.text.trim();
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
 
-    setState(() {
-      _isLoading = false;
-    });
+    try {
+      // Register ke Firebase Auth
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
 
-    _showSnackBar("Registrasi berhasil (simulasi)!", isSuccess: true);
+      // Simpan data ke Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .set({
+            'username': username,
+            'email': email,
+            'role': 'admin', // ⬅️ Penting, tandai sebagai admin
+            'created_at': FieldValue.serverTimestamp(),
+          });
 
-    await Future.delayed(const Duration(seconds: 1));
+      _showSnackBar("Registrasi admin berhasil!", isSuccess: true);
 
-    if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginAdminPage()),
-      );
+      await Future.delayed(const Duration(seconds: 1));
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginAdminPage()),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      String errorMessage = 'Terjadi kesalahan';
+
+      if (e.code == 'email-already-in-use') {
+        errorMessage = 'Email sudah digunakan';
+      } else if (e.code == 'weak-password') {
+        errorMessage = 'Password terlalu lemah';
+      } else {
+        errorMessage = e.message ?? errorMessage;
+      }
+
+      _showSnackBar(errorMessage);
+    } catch (e) {
+      _showSnackBar("Terjadi kesalahan: $e");
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 

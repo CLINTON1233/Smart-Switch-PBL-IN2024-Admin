@@ -1,4 +1,4 @@
-import 'package:admin_smart_switch/pages/analytics/analytics_page.dart';
+import 'package:admin_smart_switch/pages/statistic/statistic_page.dart';
 import 'package:admin_smart_switch/pages/home/home_page.dart';
 import 'package:admin_smart_switch/pages/kelola%20panduan/kelola_panduan_page.dart';
 import 'package:admin_smart_switch/pages/kelola%20pengguna/kelola_pengguna_page.dart';
@@ -70,12 +70,14 @@ class _KelolaSaklarPageState extends State<KelolaSaklarPage> {
       if (query.isEmpty) {
         filteredSaklar = saklar;
       } else {
-        filteredSaklar = saklar
-            .where((s) => s['nama']
-                .toString()
-                .toLowerCase()
-                .contains(query.toLowerCase()))
-            .toList();
+        filteredSaklar =
+            saklar
+                .where(
+                  (s) => s['nama'].toString().toLowerCase().contains(
+                    query.toLowerCase(),
+                  ),
+                )
+                .toList();
       }
     });
   }
@@ -294,7 +296,10 @@ class _KelolaSaklarPageState extends State<KelolaSaklarPage> {
                       child: ElevatedButton(
                         onPressed: () {
                           if (_namaSaklarController.text.isNotEmpty) {
-                            _editSaklar(saklarData['id'], _namaSaklarController.text);
+                            _editSaklar(
+                              saklarData['id'],
+                              _namaSaklarController.text,
+                            );
                             Navigator.pop(context);
                           }
                         },
@@ -427,12 +432,14 @@ class _KelolaSaklarPageState extends State<KelolaSaklarPage> {
 
   void _addSaklar(String nama) {
     setState(() {
-      int newId = saklar.isNotEmpty ? saklar.map((s) => s['id'] as int).reduce((a, b) => a > b ? a : b) + 1 : 1;
-      saklar.add({
-        'id': newId,
-        'nama': nama,
-        'status': 'Aktif',
-      });
+      int newId =
+          saklar.isNotEmpty
+              ? saklar
+                      .map((s) => s['id'] as int)
+                      .reduce((a, b) => a > b ? a : b) +
+                  1
+              : 1;
+      saklar.add({'id': newId, 'nama': nama, 'status': 'Aktif'});
       _searchSaklar(_searchController.text);
     });
     ScaffoldMessenger.of(context).showSnackBar(
@@ -553,7 +560,7 @@ class _KelolaSaklarPageState extends State<KelolaSaklarPage> {
     } else if (index == 1) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const AnalyticsPage()),
+        MaterialPageRoute(builder: (context) => const StatisticPage()),
       );
     } else if (index == 2) {
       Navigator.pushReplacement(
@@ -562,7 +569,6 @@ class _KelolaSaklarPageState extends State<KelolaSaklarPage> {
       );
     }
   }
-
 
   // Build Admin Drawer Menu
   Widget _buildDrawer() {
@@ -634,7 +640,9 @@ class _KelolaSaklarPageState extends State<KelolaSaklarPage> {
                     Navigator.pop(context);
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const KelolaPanduanPage()),
+                      MaterialPageRoute(
+                        builder: (context) => const KelolaPanduanPage(),
+                      ),
                     );
                   },
                 ),
@@ -714,17 +722,19 @@ class _KelolaSaklarPageState extends State<KelolaSaklarPage> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: isActive
-            ? const Color(0xFFABD3CC).withOpacity(0.1)
-            : Colors.transparent,
+        color:
+            isActive
+                ? const Color(0xFFABD3CC).withOpacity(0.1)
+                : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
       ),
       child: ListTile(
         leading: Icon(
           icon,
-          color: isLogout
-              ? Colors.red
-              : isActive
+          color:
+              isLogout
+                  ? Colors.red
+                  : isActive
                   ? const Color(0xFF6BB5A6)
                   : Colors.grey[600],
           size: 24,
@@ -734,9 +744,10 @@ class _KelolaSaklarPageState extends State<KelolaSaklarPage> {
           style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-            color: isLogout
-                ? Colors.red
-                : isActive
+            color:
+                isLogout
+                    ? Colors.red
+                    : isActive
                     ? const Color(0xFF6BB5A6)
                     : Colors.black87,
           ),
@@ -860,10 +871,7 @@ class _KelolaSaklarPageState extends State<KelolaSaklarPage> {
                           fontSize: 12,
                           color: Colors.grey[500],
                         ),
-                        prefixIcon: Icon(
-                          Icons.search,
-                          color: Colors.grey[500],
-                        ),
+                        prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 14,
@@ -882,9 +890,7 @@ class _KelolaSaklarPageState extends State<KelolaSaklarPage> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: BoxDecoration(
                 color: Colors.grey[50],
-                border: Border(
-                  bottom: BorderSide(color: Colors.grey[200]!),
-                ),
+                border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
               ),
               child: Row(
                 children: [
@@ -938,179 +944,197 @@ class _KelolaSaklarPageState extends State<KelolaSaklarPage> {
 
             // Table Content
             Expanded(
-              child: filteredSaklar.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[100],
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.electrical_services_outlined,
-                              size: 48,
-                              color: Colors.grey[400],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Tidak ada saklar ditemukan',
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Silakan tambah saklar baru atau ubah pencarian',
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              color: Colors.grey[500],
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : ListView.builder(
-                      padding: EdgeInsets.zero,
-                      itemCount: filteredSaklar.length,
-                      itemBuilder: (context, index) {
-                        final saklarData = filteredSaklar[index];
-                        return Container(
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
+              child:
+                  filteredSaklar.isEmpty
+                      ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                shape: BoxShape.circle,
                               ),
-                            ],
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              children: [
-                                // ID
-                                SizedBox(
-                                  width: 50,
-                                  child: Text(
-                                    '${saklarData['id']}',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                ),
-                                // Nama Saklar
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        saklarData['nama'],
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        'Smart Switch ID: ${saklarData['id'].toString().padLeft(4, '0')}',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 12,
-                                          color: Colors.grey[500],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                // Status
-                                SizedBox(
-                                  width: 80,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: saklarData['status'] == 'Aktif'
-                                          ? Colors.green.withOpacity(0.1)
-                                          : Colors.red.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      saklarData['status'],
-                                      textAlign: TextAlign.center,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w500,
-                                        color: saklarData['status'] == 'Aktif'
-                                            ? Colors.green[700]
-                                            : Colors.red[700],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                // Action Buttons
-                                SizedBox(
-                                  width: 80,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      GestureDetector(
-                                        onTap: () => _showEditSaklarDialog(saklarData),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(6),
-                                          decoration: BoxDecoration(
-                                            color: Colors.orange.withOpacity(0.1),
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
-                                          child: Icon(
-                                            Icons.edit,
-                                            size: 16,
-                                            color: Colors.orange[700],
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      GestureDetector(
-                                        onTap: () => _showDeleteConfirmationDialog(saklarData),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(6),
-                                          decoration: BoxDecoration(
-                                            color: Colors.red.withOpacity(0.1),
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
-                                          child: Icon(
-                                            Icons.delete,
-                                            size: 16,
-                                            color: Colors.red[700],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                              child: Icon(
+                                Icons.electrical_services_outlined,
+                                size: 48,
+                                color: Colors.grey[400],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Tidak ada saklar ditemukan',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Silakan tambah saklar baru atau ubah pencarian',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: Colors.grey[500],
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                      : ListView.builder(
+                        padding: EdgeInsets.zero,
+                        itemCount: filteredSaklar.length,
+                        itemBuilder: (context, index) {
+                          final saklarData = filteredSaklar[index];
+                          return Container(
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
                                 ),
                               ],
                             ),
-                          ),
-                        );
-                      },
-                    ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                children: [
+                                  // ID
+                                  SizedBox(
+                                    width: 50,
+                                    child: Text(
+                                      '${saklarData['id']}',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                  // Nama Saklar
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          saklarData['nama'],
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          'Smart Switch ID: ${saklarData['id'].toString().padLeft(4, '0')}',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 12,
+                                            color: Colors.grey[500],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  // Status
+                                  SizedBox(
+                                    width: 80,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color:
+                                            saklarData['status'] == 'Aktif'
+                                                ? Colors.green.withOpacity(0.1)
+                                                : Colors.red.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        saklarData['status'],
+                                        textAlign: TextAlign.center,
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w500,
+                                          color:
+                                              saklarData['status'] == 'Aktif'
+                                                  ? Colors.green[700]
+                                                  : Colors.red[700],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  // Action Buttons
+                                  SizedBox(
+                                    width: 80,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        GestureDetector(
+                                          onTap:
+                                              () => _showEditSaklarDialog(
+                                                saklarData,
+                                              ),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(6),
+                                            decoration: BoxDecoration(
+                                              color: Colors.orange.withOpacity(
+                                                0.1,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                            ),
+                                            child: Icon(
+                                              Icons.edit,
+                                              size: 16,
+                                              color: Colors.orange[700],
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        GestureDetector(
+                                          onTap:
+                                              () =>
+                                                  _showDeleteConfirmationDialog(
+                                                    saklarData,
+                                                  ),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(6),
+                                            decoration: BoxDecoration(
+                                              color: Colors.red.withOpacity(
+                                                0.1,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                            ),
+                                            child: Icon(
+                                              Icons.delete,
+                                              size: 16,
+                                              color: Colors.red[700],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
             ),
-             const SizedBox(width: 12),
+            const SizedBox(width: 12),
 
             // Summary Footer
             Container(
@@ -1211,7 +1235,7 @@ class _KelolaSaklarPageState extends State<KelolaSaklarPage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.analytics_outlined),
             activeIcon: Icon(Icons.analytics),
-            label: 'Analytics',
+            label: 'Statistic',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
