@@ -51,11 +51,11 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyD-V8vjhdCFMOo6_rEuVg8UEYiVv0qFWfk',
-    appId: '1:267223687057:android:3f16dc2a449ab729f58430',
-    messagingSenderId: '267223687057',
-    projectId: 'smart-switch-pblin2024',
-    storageBucket: 'smart-switch-pblin2024.firebasestorage.app',
+    apiKey: 'AIzaSyD15JQa9cvOrwY0K9_FRjWk3es4i38WExg',
+    appId: '1:145953908614:android:e8a276fc9ba56fc9a92e07',
+    messagingSenderId: '145953908614',
+    projectId: 'smart-switch-pbl-in2024-db81c',
+    storageBucket: 'smart-switch-pbl-in2024-db81c.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(

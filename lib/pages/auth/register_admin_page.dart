@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:admin_smart_switch/pages/auth/login_admin_page.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:admin_smart_switch/services/firestore_auth_services.dart';
 
 class RegisterAdminPage extends StatefulWidget {
   const RegisterAdminPage({super.key});
@@ -19,6 +19,7 @@ class _RegisterAdminPageState extends State<RegisterAdminPage> {
   final TextEditingController confirmPasswordController =
       TextEditingController();
 
+  final FirestoreService _firestoreService = FirestoreService();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
@@ -32,8 +33,10 @@ class _RegisterAdminPageState extends State<RegisterAdminPage> {
     super.dispose();
   }
 
+  // Show SnackBar dengan pesan
   void _showSnackBar(String message, {bool isSuccess = false}) {
     if (!mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message, style: GoogleFonts.poppins(color: Colors.white)),
@@ -44,6 +47,7 @@ class _RegisterAdminPageState extends State<RegisterAdminPage> {
     );
   }
 
+  // Validasi form input
   bool _validateForm() {
     final username = usernameController.text.trim();
     final email = emailController.text.trim();
@@ -81,7 +85,8 @@ class _RegisterAdminPageState extends State<RegisterAdminPage> {
     return true;
   }
 
-  void _registerUser() async {
+  // Fungsi registrasi user dengan Firebase
+  Future<void> _registerUser() async {
     if (!_validateForm()) return;
 
     setState(() {
@@ -93,25 +98,35 @@ class _RegisterAdminPageState extends State<RegisterAdminPage> {
     final password = passwordController.text.trim();
 
     try {
-      // Register ke Firebase Auth
+      // Cek apakah username sudah digunakan
+      bool usernameExists = await _firestoreService.isUsernameExists(username);
+      if (usernameExists) {
+        _showSnackBar("Username sudah digunakan");
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+
+      // Buat akun Firebase Auth
       UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
 
       // Simpan data ke Firestore
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userCredential.user!.uid)
-          .set({
-            'username': username,
-            'email': email,
-            'role': 'admin', // ⬅️ Penting, tandai sebagai admin
-            'created_at': FieldValue.serverTimestamp(),
-          });
+      await _firestoreService.saveUserData(
+        userId: userCredential.user!.uid,
+        username: username,
+        email: email,
+      );
 
-      _showSnackBar("Registrasi admin berhasil!", isSuccess: true);
+      // Update display name
+      await userCredential.user!.updateDisplayName(username);
 
+      // Tampilkan pesan sukses
+      _showSnackBar("Registrasi berhasil!", isSuccess: true);
+
+      // Navigasi ke halaman login
       await Future.delayed(const Duration(seconds: 1));
-
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -119,17 +134,26 @@ class _RegisterAdminPageState extends State<RegisterAdminPage> {
         );
       }
     } on FirebaseAuthException catch (e) {
-      String errorMessage = 'Terjadi kesalahan';
+      String message = "Terjadi kesalahan";
 
-      if (e.code == 'email-already-in-use') {
-        errorMessage = 'Email sudah digunakan';
-      } else if (e.code == 'weak-password') {
-        errorMessage = 'Password terlalu lemah';
-      } else {
-        errorMessage = e.message ?? errorMessage;
+      switch (e.code) {
+        case 'email-already-in-use':
+          message = "Email sudah digunakan";
+          break;
+        case 'invalid-email':
+          message = "Email tidak valid";
+          break;
+        case 'weak-password':
+          message = "Password terlalu lemah";
+          break;
+        case 'operation-not-allowed':
+          message = "Operasi tidak diizinkan";
+          break;
+        default:
+          message = "Terjadi kesalahan: ${e.message}";
       }
 
-      _showSnackBar(errorMessage);
+      _showSnackBar(message);
     } catch (e) {
       _showSnackBar("Terjadi kesalahan: $e");
     } finally {
@@ -163,6 +187,7 @@ class _RegisterAdminPageState extends State<RegisterAdminPage> {
       body: SafeArea(
         child: Stack(
           children: [
+            // Background decorations
             Positioned(
               top: 0,
               left: 0,
@@ -229,6 +254,8 @@ class _RegisterAdminPageState extends State<RegisterAdminPage> {
                 ),
               ),
             ),
+
+            // Main content
             SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(40, 125, 40, 300),
               child: Column(
@@ -241,7 +268,7 @@ class _RegisterAdminPageState extends State<RegisterAdminPage> {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    'Regist Account Admin',
+                    'Regist Account',
                     style: GoogleFonts.oleoScriptSwashCaps(
                       fontSize: 20,
                       color: const Color(0xFF2C5C52),
@@ -335,6 +362,8 @@ class _RegisterAdminPageState extends State<RegisterAdminPage> {
                 ],
               ),
             ),
+
+            // Loading overlay
             if (_isLoading)
               Container(
                 color: Colors.black.withOpacity(0.3),
