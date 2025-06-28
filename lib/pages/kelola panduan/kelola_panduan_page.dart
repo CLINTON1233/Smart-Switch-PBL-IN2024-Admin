@@ -43,27 +43,17 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
   List<Panduan> _panduan = [
     Panduan(
       id: '1',
-      judul: 'Panduan Dasar Hidroponik',
-      isi: 'Hidroponik adalah metode menanam tanaman tanpa tanah...',
+      judul: 'Cara Mengukur Daya, Arus, Tegangan dan Hambatan',
+      isi:
+          'Pelajari cara mengukur komponen listrik dengan benar menggunakan multimeter. Panduan ini mencakup pengukuran dasar untuk pemula.',
       tanggalDibuat: DateTime(2023, 1, 15),
     ),
     Panduan(
       id: '2',
-      judul: 'Nutrisi untuk Hidroponik',
-      isi: 'Tanaman hidroponik membutuhkan nutrisi khusus yang...',
+      judul: 'Pemahaman Dasar Rangkaian Listrik',
+      isi:
+          'Memahami konsep dasar dalam rangkaian elektronik termasuk hukum Ohm, jenis-jenis rangkaian, dan komponen dasar elektronika.',
       tanggalDibuat: DateTime(2023, 2, 20),
-    ),
-    Panduan(
-      id: '3',
-      judul: 'Sistem NFT Hidroponik',
-      isi: 'Nutrient Film Technique (NFT) adalah salah satu sistem...',
-      tanggalDibuat: DateTime(2023, 3, 10),
-    ),
-    Panduan(
-      id: '4',
-      judul: 'Pengendalian Hama Hidroponik',
-      isi: 'Meskipun hidroponik mengurangi risiko hama tanah...',
-      tanggalDibuat: DateTime(2023, 4, 5),
     ),
   ];
 
@@ -113,8 +103,6 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
     });
 
     if (index == 0) {
-      // Stay on admin home
-    } else if (index == 1) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomePage()),
@@ -151,154 +139,160 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color:
-                            _isEditing
-                                ? Colors.orange.withOpacity(0.1)
-                                : const Color(0xFF6BB5A6).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        _isEditing ? Icons.edit : Icons.add_circle,
-                        color:
-                            _isEditing
-                                ? Colors.orange
-                                : const Color(0xFF6BB5A6),
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      _isEditing ? 'Edit Panduan' : 'Tambah Panduan Baru',
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                TextField(
-                  controller: _judulController,
-                  decoration: InputDecoration(
-                    labelText: 'Judul Panduan',
-                    labelStyle: GoogleFonts.poppins(
-                      color: Colors.grey[600],
-                      fontSize: 14,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color:
-                            _isEditing
-                                ? Colors.orange
-                                : const Color(0xFF6BB5A6),
-                      ),
-                    ),
-                    prefixIcon: Icon(
-                      Icons.title,
-                      color:
-                          _isEditing ? Colors.orange : const Color(0xFF6BB5A6),
-                    ),
-                  ),
-                  style: GoogleFonts.poppins(fontSize: 14),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _isiController,
-                  maxLines: 5,
-                  decoration: InputDecoration(
-                    labelText: 'Isi Panduan',
-                    labelStyle: GoogleFonts.poppins(
-                      color: Colors.grey[600],
-                      fontSize: 14,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color:
-                            _isEditing
-                                ? Colors.orange
-                                : const Color(0xFF6BB5A6),
-                      ),
-                    ),
-                    prefixIcon: Icon(
-                      Icons.description,
-                      color:
-                          _isEditing ? Colors.orange : const Color(0xFF6BB5A6),
-                    ),
-                  ),
-                  style: GoogleFonts.poppins(fontSize: 14),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            side: BorderSide(color: Colors.grey[300]!),
-                          ),
+          child: SingleChildScrollView(
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color:
+                              _isEditing
+                                  ? Colors.orange.withOpacity(0.1)
+                                  : const Color(0xFF6BB5A6).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Text(
-                          'Batal',
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: _savePanduan,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
+                        child: Icon(
+                          _isEditing ? Icons.edit : Icons.add_circle,
+                          color:
                               _isEditing
                                   ? Colors.orange
                                   : const Color(0xFF6BB5A6),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 0,
+                          size: 24,
                         ),
-                        child: Text(
-                          _isEditing ? 'Simpan' : 'Tambah',
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        _isEditing ? 'Edit Panduan' : 'Tambah Panduan Baru',
+                        style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: _judulController,
+                    decoration: InputDecoration(
+                      labelText: 'Judul Panduan',
+                      labelStyle: GoogleFonts.poppins(
+                        color: Colors.grey[600],
+                        fontSize: 14,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color:
+                              _isEditing
+                                  ? Colors.orange
+                                  : const Color(0xFF6BB5A6),
+                        ),
+                      ),
+                      prefixIcon: Icon(
+                        Icons.title,
+                        color:
+                            _isEditing
+                                ? Colors.orange
+                                : const Color(0xFF6BB5A6),
+                      ),
+                    ),
+                    style: GoogleFonts.poppins(fontSize: 14),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _isiController,
+                    maxLines: 5,
+                    decoration: InputDecoration(
+                      labelText: 'Isi Panduan',
+                      labelStyle: GoogleFonts.poppins(
+                        color: Colors.grey[600],
+                        fontSize: 14,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color:
+                              _isEditing
+                                  ? Colors.orange
+                                  : const Color(0xFF6BB5A6),
+                        ),
+                      ),
+                      prefixIcon: Icon(
+                        Icons.description,
+                        color:
+                            _isEditing
+                                ? Colors.orange
+                                : const Color(0xFF6BB5A6),
+                      ),
+                    ),
+                    style: GoogleFonts.poppins(fontSize: 14),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(color: Colors.grey[300]!),
+                            ),
+                          ),
+                          child: Text(
+                            'Batal',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.grey[600],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _savePanduan,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                _isEditing
+                                    ? Colors.orange
+                                    : const Color(0xFF6BB5A6),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            _isEditing ? 'Simpan' : 'Tambah',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -480,56 +474,6 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
     );
   }
 
-  void _showLogoutConfirmationDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: const Icon(Icons.warning, color: Colors.orange, size: 40),
-          content: const Text(
-            "Apakah Anda yakin ingin logout dari panel admin?",
-            textAlign: TextAlign.center,
-          ),
-          actions: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                TextButton(
-                  child: const Text(
-                    "Tidak, Batalkan!",
-                    style: TextStyle(color: Colors.red),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                TextButton(
-                  child: const Text(
-                    "Ya",
-                    style: TextStyle(color: Colors.green),
-                  ),
-                  onPressed: () async {
-                    await _auth.signOut();
-                    Navigator.of(context).pop();
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const LoginAdminPage(),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   Widget _buildDrawer() {
     return Drawer(
       backgroundColor: Colors.white,
@@ -566,7 +510,7 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Admin Smart Switch',
+                      'Admin',
                       style: GoogleFonts.poppins(
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
@@ -662,6 +606,56 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showLogoutConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Icon(Icons.warning, color: Colors.orange, size: 40),
+          content: const Text(
+            "Apakah Anda yakin ingin logout dari panel admin?",
+            textAlign: TextAlign.center,
+          ),
+          actions: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                TextButton(
+                  child: const Text(
+                    "Tidak, Batalkan!",
+                    style: TextStyle(color: Colors.red),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: const Text(
+                    "Ya",
+                    style: TextStyle(color: Colors.green),
+                  ),
+                  onPressed: () async {
+                    await _auth.signOut();
+                    Navigator.of(context).pop();
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LoginAdminPage(),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -761,7 +755,7 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Daftar Panduan Hidroponik',
+                            'Daftar Panduan',
                             style: GoogleFonts.poppins(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
@@ -770,7 +764,7 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Kelola semua panduan hidroponik',
+                            'Kelola semua panduan elektronik',
                             style: GoogleFonts.poppins(
                               fontSize: 12,
                               color: Colors.grey[600],
@@ -850,7 +844,7 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
                     ),
                   ),
                   Expanded(
-                    flex: 2,
+                    flex: 3,
                     child: Text(
                       'Judul Panduan',
                       style: GoogleFonts.poppins(
@@ -861,7 +855,7 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
                     ),
                   ),
                   Expanded(
-                    flex: 3,
+                    flex: 4,
                     child: Text(
                       'Isi Panduan',
                       style: GoogleFonts.poppins(
@@ -966,7 +960,7 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
                                   ),
                                   // Judul Panduan
                                   Expanded(
-                                    flex: 2,
+                                    flex: 3,
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
@@ -992,7 +986,7 @@ class _KelolaPanduanPageState extends State<KelolaPanduanPage> {
                                   ),
                                   // Isi Panduan
                                   Expanded(
-                                    flex: 3,
+                                    flex: 4,
                                     child: Text(
                                       panduan.isi.length > 50
                                           ? '${panduan.isi.substring(0, 50)}...'

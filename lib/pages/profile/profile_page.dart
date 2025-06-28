@@ -1,15 +1,9 @@
-import 'package:admin_smart_switch/pages/statistic/statistic_page.dart';
-import 'package:admin_smart_switch/pages/home/home_page.dart';
-import 'package:admin_smart_switch/pages/kelola%20panduan/kelola_panduan_page.dart';
-import 'package:admin_smart_switch/pages/kelola%20pengguna/kelola_pengguna_page.dart';
-import 'package:admin_smart_switch/pages/kelola%20saklar/kelola_saklar_page.dart';
-import 'package:admin_smart_switch/pages/profile/profile_page.dart';
 import 'package:flutter/material.dart';
-import 'package:admin_smart_switch/pages/auth/login_admin_page.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:fl_chart/fl_chart.dart';
+import 'package:admin_smart_switch/pages/auth/login_admin_page.dart';
+import 'package:admin_smart_switch/pages/home/home_page.dart';
+import 'package:admin_smart_switch/pages/statistic/statistic_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -19,18 +13,18 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  int _selectedIndex = 2;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController newPasswordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
 
-  // Admin specific variables
-  String adminName = 'Admin';
-  String adminEmail = 'admin@smartswitch.com';
-  int totalUsers = 1250;
-  int activeDevices = 892;
-  int totalDevices = 1050;
-  double totalPowerConsumption = 45.6; // kWh
-  int alertsCount = 3;
+  bool _newPasswordVisible = false;
+  bool _confirmPasswordVisible = false;
+  bool _isLoading = false;
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  int _selectedIndex = 2;
 
   @override
   void initState() {
@@ -42,13 +36,13 @@ class _ProfilePageState extends State<ProfilePage> {
     final user = _auth.currentUser;
     if (user != null) {
       setState(() {
-        adminName = user.displayName ?? 'Admin';
-        adminEmail = user.email ?? 'admin@smartswitch.com';
+        usernameController.text = user.displayName ?? 'Admin';
+        emailController.text = user.email ?? 'admin@smartswitch.com';
       });
     }
   }
 
-  void _showLogoutConfirmationDialog() {
+  void _showReLoginDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -56,45 +50,136 @@ class _ProfilePageState extends State<ProfilePage> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          title: const Icon(Icons.warning, color: Colors.orange, size: 40),
-          content: const Text(
-            "Apakah Anda yakin ingin logout dari panel admin?",
+          title: const Icon(Icons.check_circle, color: Colors.green, size: 40),
+          content: Text(
+            "Profile berhasil disimpan \nSilakan login kembali",
             textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(fontSize: 13),
           ),
           actions: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                TextButton(
-                  child: const Text(
-                    "Tidak, Batalkan!",
-                    style: TextStyle(color: Colors.red),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
+            Center(
+              child: TextButton(
+                child: Text(
+                  "OK",
+                  style: GoogleFonts.poppins(color: const Color(0xFF5CB0AC)),
                 ),
-                TextButton(
-                  child: const Text(
-                    "Ya",
-                    style: TextStyle(color: Colors.green),
-                  ),
-                  onPressed: () async {
-                    await _auth.signOut();
-                    Navigator.of(context).pop();
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const LoginAdminPage(),
-                      ),
-                    );
-                  },
-                ),
-              ],
+                onPressed: () async {
+                  await _auth.signOut();
+                  Navigator.of(context).pop();
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const LoginAdminPage(),
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         );
       },
+    );
+  }
+
+  Future<void> _saveProfile() async {
+    if (newPasswordController.text.isNotEmpty &&
+        newPasswordController.text != confirmPasswordController.text) {
+      _showErrorDialog('Password baru dan konfirmasi password tidak sama!');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    User? user = _auth.currentUser;
+
+    try {
+      if (user != null) {
+        // Update display name
+        if (usernameController.text.trim().isNotEmpty) {
+          await user.updateDisplayName(usernameController.text.trim());
+          await user.reload();
+        }
+
+        // Update password if provided
+        if (newPasswordController.text.isNotEmpty) {
+          await user.updatePassword(newPasswordController.text);
+          _showReLoginDialog();
+          return;
+        }
+
+        // Show success message if only username was updated
+        _showSuccessDialog('Profil admin berhasil disimpan!');
+      }
+    } on FirebaseAuthException catch (e) {
+      _showErrorDialog(e.message ?? "Terjadi kesalahan saat update profile.");
+    } catch (e) {
+      _showErrorDialog("Terjadi kesalahan: $e");
+    } finally {
+      setState(() {
+        _isLoading = false;
+        newPasswordController.clear();
+        confirmPasswordController.clear();
+      });
+    }
+  }
+
+  void _showSuccessDialog(String message) {
+    showDialog(
+      context: context,
+      builder:
+          (_) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: const Icon(
+              Icons.check_circle,
+              color: Colors.green,
+              size: 40,
+            ),
+            content: Text(
+              message,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(fontSize: 16),
+            ),
+            actions: [
+              TextButton(
+                child: Text(
+                  'OK',
+                  style: GoogleFonts.poppins(color: const Color(0xFF5CB0AC)),
+                ),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+    );
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder:
+          (_) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: const Icon(Icons.error, color: Colors.red, size: 40),
+            content: Text(
+              message,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(fontSize: 16),
+            ),
+            actions: [
+              TextButton(
+                child: Text(
+                  'OK',
+                  style: GoogleFonts.poppins(color: const Color(0xFF5CB0AC)),
+                ),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
     );
   }
 
@@ -104,8 +189,6 @@ class _ProfilePageState extends State<ProfilePage> {
     });
 
     if (index == 0) {
-      // Stay on admin home
-    } else if (index == 0) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomePage()),
@@ -115,226 +198,98 @@ class _ProfilePageState extends State<ProfilePage> {
         context,
         MaterialPageRoute(builder: (context) => const StatisticPage()),
       );
-    } else if (index == 2) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const ProfilePage()),
-      );
     }
   }
 
-  // Build Admin Drawer Menu
-  Widget _buildDrawer() {
-    return Drawer(
-      backgroundColor: Colors.white,
-      child: Column(
-        children: [
-          // Drawer Header
-          Container(
-            height: 200,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  const Color.fromARGB(255, 13, 138, 117),
-                  const Color.fromARGB(255, 24, 142, 122),
-                ],
-              ),
-            ),
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(11),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundColor: Colors.white,
-                      child: Icon(
-                        Icons.admin_panel_settings,
-                        size: 30,
-                        color: const Color(0xFF6BB5A6),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      adminName,
-                      style: GoogleFonts.poppins(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Text(
-                      'Administrator',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        color: Colors.white.withOpacity(0.9),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          // Admin Menu Items
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                _buildDrawerItem(
-                  icon: Icons.dashboard,
-                  title: 'Dashboard',
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const HomePage()),
-                    );
-                  },
-                  isActive: true,
-                ),
-                _buildDrawerItem(
-                  icon: Icons.people,
-                  title: 'Kelola Pengguna',
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const KelolaPenggunaPage(),
-                      ),
-                    );
-                  },
-                ),
-
-                _buildDrawerItem(
-                  icon: Icons.devices,
-                  title: 'Kelola Saklar',
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const KelolaSaklarPage(),
-                      ),
-                    );
-                  },
-                ),
-                _buildDrawerItem(
-                  icon: Icons.assignment,
-                  title: 'Kelola Panduan',
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const KelolaPanduanPage(),
-                      ),
-                    );
-                  },
-                ),
-
-                _buildDrawerItem(
-                  icon: Icons.logout,
-                  title: 'Logout',
-                  onTap: () {
-                    Navigator.pop(context);
-                    _showLogoutConfirmationDialog();
-                  },
-                  isLogout: true,
-                ),
-              ],
-            ),
-          ),
-          // App Version
-          Container(
-            padding: const EdgeInsets.all(30),
-            child: Text(
-              'Admin Panel v1.0.0',
-              style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[400]),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Build Drawer Item
-  Widget _buildDrawerItem({
+  Widget _buildInputField({
+    required TextEditingController controller,
+    required String label,
+    required String placeholder,
     required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-    bool isActive = false,
-    bool isLogout = false,
+    bool readOnly = false,
+    bool obscureText = false,
+    bool? passwordVisible,
+    VoidCallback? togglePasswordVisibility,
   }) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color:
-            isActive
-                ? const Color(0xFFABD3CC).withOpacity(0.1)
-                : Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ListTile(
-        leading: Icon(
-          icon,
-          color:
-              isLogout
-                  ? Colors.red
-                  : isActive
-                  ? const Color(0xFF6BB5A6)
-                  : Colors.grey[600],
-          size: 24,
-        ),
-        title: Text(
-          title,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
           style: GoogleFonts.poppins(
             fontSize: 14,
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-            color:
-                isLogout
-                    ? Colors.red
-                    : isActive
-                    ? const Color(0xFF6BB5A6)
-                    : Colors.black87,
+            fontWeight: FontWeight.w500,
+            color: Colors.black87,
           ),
         ),
-        onTap: onTap,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: readOnly ? const Color(0xFFF5F5F5) : const Color(0xFFF8F9FA),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: readOnly ? Colors.grey.shade300 : Colors.grey.shade200,
+              width: 1,
+            ),
+          ),
+          child: TextField(
+            controller: controller,
+            readOnly: readOnly,
+            obscureText: obscureText,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              color: readOnly ? Colors.grey.shade600 : Colors.black87,
+            ),
+            decoration: InputDecoration(
+              hintText: placeholder,
+              hintStyle: GoogleFonts.poppins(
+                fontSize: 14,
+                color: Colors.grey.shade500,
+              ),
+              prefixIcon: Icon(icon, color: Colors.grey.shade600, size: 20),
+              suffixIcon:
+                  togglePasswordVisibility != null
+                      ? IconButton(
+                        icon: Icon(
+                          passwordVisible!
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: Colors.grey.shade600,
+                          size: 20,
+                        ),
+                        onPressed: togglePasswordVisibility,
+                      )
+                      : null,
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-      ),
-    );
-
     return Scaffold(
-      key: _scaffoldKey,
-      backgroundColor: const Color(0xFFF8F9FA),
-      drawer: _buildDrawer(),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 13, 138, 117),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.menu, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            _scaffoldKey.currentState?.openDrawer();
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomePage()),
+            );
           },
         ),
         title: Text(
-          'Profile',
+          'Edit Profil Admin',
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -342,53 +297,176 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
         centerTitle: true,
-        // actions: [
-        //   IconButton(
-        //     icon: Stack(
-        //       children: [
-        //         Icon(Icons.notifications_outlined, color: Colors.white),
-        //         if (alertsCount > 0)
-        //           Positioned(
-        //             right: 0,
-        //             top: 0,
-        //             child: Container(
-        //               padding: EdgeInsets.all(2),
-        //               decoration: BoxDecoration(
-        //                 color: Colors.red,
-        //                 borderRadius: BorderRadius.circular(10),
-        //               ),
-        //               constraints: BoxConstraints(minWidth: 16, minHeight: 16),
-        //               child: Text(
-        //                 '$alertsCount',
-        //                 style: TextStyle(color: Colors.white, fontSize: 10),
-        //                 textAlign: TextAlign.center,
-        //               ),
-        //             ),
-        //           ),
-        //       ],
-        //     ),
-        //     onPressed: () {
-        //       // Handle notifications
-        //     },
-        //   ),
-        // ],
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(padding: const EdgeInsets.all(20)),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // Profile Picture Section
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Column(
+                children: [
+                  Stack(
+                    children: [
+                      Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.grey.shade200,
+                          border: Border.all(
+                            color: Colors.grey.shade300,
+                            width: 2,
+                          ),
+                        ),
+                        child: ClipOval(
+                          child: Icon(
+                            Icons.admin_panel_settings,
+                            size: 60,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          width: 36,
+                          height: 30,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF5CB0AC),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.camera_alt,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // Form Section
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 30),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildInputField(
+                    controller: usernameController,
+                    label: 'Nama Admin',
+                    placeholder: 'Masukkan nama admin',
+                    icon: Icons.person_outline,
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  _buildInputField(
+                    controller: emailController,
+                    label: 'Email Admin',
+                    placeholder: 'admin@smartswitch.com',
+                    icon: Icons.email_outlined,
+                    readOnly: true,
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  _buildInputField(
+                    controller: newPasswordController,
+                    label: 'Kata Sandi Baru',
+                    placeholder: 'Masukkan kata sandi baru',
+                    icon: Icons.lock_outline,
+                    obscureText: !_newPasswordVisible,
+                    passwordVisible: _newPasswordVisible,
+                    togglePasswordVisibility: () {
+                      setState(() {
+                        _newPasswordVisible = !_newPasswordVisible;
+                      });
+                    },
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  _buildInputField(
+                    controller: confirmPasswordController,
+                    label: 'Konfirmasi Kata Sandi',
+                    placeholder: 'Konfirmasi kata sandi baru',
+                    icon: Icons.lock_outline,
+                    obscureText: !_confirmPasswordVisible,
+                    passwordVisible: _confirmPasswordVisible,
+                    togglePasswordVisibility: () {
+                      setState(() {
+                        _confirmPasswordVisible = !_confirmPasswordVisible;
+                      });
+                    },
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Save Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 45,
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _saveProfile,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(
+                          255,
+                          13,
+                          138,
+                          117,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        elevation: 0,
+                      ),
+                      child:
+                          _isLoading
+                              ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                              : Text(
+                                'Simpan Perubahan',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 30),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         backgroundColor: Colors.white,
-        selectedItemColor: const Color(0xFF6BB5A6),
+        selectedItemColor: const Color(0xFF5CB0AC),
         unselectedItemColor: Colors.grey[600],
         selectedIconTheme: const IconThemeData(size: 24),
         unselectedIconTheme: const IconThemeData(size: 22),
         selectedLabelStyle: GoogleFonts.poppins(
           fontSize: 11,
           fontWeight: FontWeight.w600,
-          color: const Color(0xFF6BB5A6),
+          color: const Color(0xFF5CB0AC),
         ),
         unselectedLabelStyle: GoogleFonts.poppins(
           fontSize: 10,
@@ -404,165 +482,12 @@ class _ProfilePageState extends State<ProfilePage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.analytics_outlined),
             activeIcon: Icon(Icons.analytics),
-            label: 'Statistic',
+            label: 'Statistik',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
             activeIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatCard(
-    String title,
-    String value,
-    IconData icon,
-    Color color,
-    String subtitle,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(icon, color: color, size: 24),
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(Icons.trending_up, color: color, size: 16),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            value,
-            style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: Colors.grey.shade600,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: GoogleFonts.poppins(
-              fontSize: 10,
-              color: color,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuickAction(IconData icon, String label, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: const Color(0xFF6BB5A6).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: const Color(0xFF6BB5A6), size: 24),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
-              fontSize: 10,
-              color: Colors.grey.shade700,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActivityItem(
-    IconData icon,
-    String title,
-    String subtitle,
-    String time,
-    Color color,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.poppins(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-                Text(
-                  subtitle,
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Text(
-            time,
-            style: GoogleFonts.poppins(
-              fontSize: 10,
-              color: Colors.grey.shade500,
-            ),
+            label: 'Profil',
           ),
         ],
       ),

@@ -8,6 +8,7 @@ import 'package:admin_smart_switch/pages/auth/login_admin_page.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 class StatisticPage extends StatefulWidget {
   const StatisticPage({super.key});
@@ -29,6 +30,19 @@ class _StatisticPageState extends State<StatisticPage> {
   int totalDevices = 1050;
   double totalPowerConsumption = 45.6; // kWh
   int alertsCount = 3;
+
+  // Data for charts
+  List<int> weeklyActiveDevices = [750, 680, 820, 890, 940, 760, 650];
+  List<int> weeklyNewUsers = [120, 95, 150, 180, 210, 130, 85];
+  List<double> weeklyPowerConsumption = [
+    38.2,
+    35.7,
+    42.1,
+    45.8,
+    47.5,
+    40.3,
+    36.8,
+  ];
 
   @override
   void initState() {
@@ -102,17 +116,12 @@ class _StatisticPageState extends State<StatisticPage> {
     });
 
     if (index == 0) {
-      // Stay on admin home
-    } else if (index == 0) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomePage()),
       );
     } else if (index == 1) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const StatisticPage()),
-      );
+      // Already on statistics page
     } else if (index == 2) {
       Navigator.pushReplacement(
         context,
@@ -121,7 +130,6 @@ class _StatisticPageState extends State<StatisticPage> {
     }
   }
 
-  // Build Admin Drawer Menu
   Widget _buildDrawer() {
     return Drawer(
       backgroundColor: Colors.white,
@@ -194,7 +202,6 @@ class _StatisticPageState extends State<StatisticPage> {
                       MaterialPageRoute(builder: (context) => const HomePage()),
                     );
                   },
-                  isActive: true,
                 ),
                 _buildDrawerItem(
                   icon: Icons.people,
@@ -209,7 +216,6 @@ class _StatisticPageState extends State<StatisticPage> {
                     );
                   },
                 ),
-
                 _buildDrawerItem(
                   icon: Icons.devices,
                   title: 'Kelola Saklar',
@@ -236,7 +242,6 @@ class _StatisticPageState extends State<StatisticPage> {
                     );
                   },
                 ),
-
                 _buildDrawerItem(
                   icon: Icons.logout,
                   title: 'Logout',
@@ -262,7 +267,6 @@ class _StatisticPageState extends State<StatisticPage> {
     );
   }
 
-  // Build Drawer Item
   Widget _buildDrawerItem({
     required IconData icon,
     required String title,
@@ -305,111 +309,6 @@ class _StatisticPageState extends State<StatisticPage> {
         ),
         onTap: onTap,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-      ),
-    );
-
-    return Scaffold(
-      key: _scaffoldKey,
-      backgroundColor: const Color(0xFFF8F9FA),
-      drawer: _buildDrawer(),
-      appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 13, 138, 117),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.menu, color: Colors.white),
-          onPressed: () {
-            _scaffoldKey.currentState?.openDrawer();
-          },
-        ),
-        title: Text(
-          'Statistic',
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-        centerTitle: true,
-        // actions: [
-        //   IconButton(
-        //     icon: Stack(
-        //       children: [
-        //         Icon(Icons.notifications_outlined, color: Colors.white),
-        //         if (alertsCount > 0)
-        //           Positioned(
-        //             right: 0,
-        //             top: 0,
-        //             child: Container(
-        //               padding: EdgeInsets.all(2),
-        //               decoration: BoxDecoration(
-        //                 color: Colors.red,
-        //                 borderRadius: BorderRadius.circular(10),
-        //               ),
-        //               constraints: BoxConstraints(minWidth: 16, minHeight: 16),
-        //               child: Text(
-        //                 '$alertsCount',
-        //                 style: TextStyle(color: Colors.white, fontSize: 10),
-        //                 textAlign: TextAlign.center,
-        //               ),
-        //             ),
-        //           ),
-        //       ],
-        //     ),
-        //     onPressed: () {
-        //       // Handle notifications
-        //     },
-        //   ),
-        // ],
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(padding: const EdgeInsets.all(20)),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        backgroundColor: Colors.white,
-        selectedItemColor: const Color(0xFF6BB5A6),
-        unselectedItemColor: Colors.grey[600],
-        selectedIconTheme: const IconThemeData(size: 24),
-        unselectedIconTheme: const IconThemeData(size: 22),
-        selectedLabelStyle: GoogleFonts.poppins(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: const Color(0xFF6BB5A6),
-        ),
-        unselectedLabelStyle: GoogleFonts.poppins(
-          fontSize: 10,
-          fontWeight: FontWeight.w500,
-          color: Colors.grey[600],
-        ),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard_outlined),
-            activeIcon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.analytics_outlined),
-            activeIcon: Icon(Icons.analytics),
-            label: 'Statistic',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
       ),
     );
   }
@@ -483,84 +382,567 @@ class _StatisticPageState extends State<StatisticPage> {
     );
   }
 
-  Widget _buildQuickAction(IconData icon, String label, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: const Color(0xFF6BB5A6).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: const Color(0xFF6BB5A6), size: 24),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
-              fontSize: 10,
-              color: Colors.grey.shade700,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
+  @override
+  Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
       ),
     );
-  }
 
-  Widget _buildActivityItem(
-    IconData icon,
-    String title,
-    String subtitle,
-    String time,
-    Color color,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: color, size: 20),
+    return Scaffold(
+      key: _scaffoldKey,
+      backgroundColor: const Color(0xFFF8F9FA),
+      drawer: _buildDrawer(),
+      appBar: AppBar(
+        backgroundColor: const Color.fromARGB(255, 13, 138, 117),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomePage()),
+            );
+          },
+        ),
+        title: Text(
+          'Statistik',
+          style: GoogleFonts.poppins(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.poppins(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+        ),
+        centerTitle: true,
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Summary Cards
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatCard(
+                      'Total Pengguna',
+                      totalUsers.toString(),
+                      Icons.people,
+                      Colors.blue,
+                      '+${((1250 - 1100) / 1100 * 100).toStringAsFixed(1)}% dari bulan lalu',
+                    ),
                   ),
-                ),
-                Text(
-                  subtitle,
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    color: Colors.grey.shade600,
+                  const SizedBox(width: 15),
+                  Expanded(
+                    child: _buildStatCard(
+                      'Saklar Aktif',
+                      '$activeDevices/$totalDevices',
+                      Icons.power,
+                      Colors.green,
+                      '${((activeDevices / totalDevices) * 100).toStringAsFixed(1)}% aktif',
+                    ),
                   ),
+                ],
+              ),
+              const SizedBox(height: 15),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatCard(
+                      'Konsumsi Daya',
+                      '${totalPowerConsumption}kWh',
+                      Icons.bolt,
+                      Colors.orange,
+                      'Hari ini',
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 25),
+
+              // User Statistics
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Statistik Pengguna',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      height: 200,
+                      child: BarChart(
+                        BarChartData(
+                          barGroups: [
+                            for (int i = 0; i < weeklyNewUsers.length; i++)
+                              BarChartGroupData(
+                                x: i,
+                                barRods: [
+                                  BarChartRodData(
+                                    toY: weeklyNewUsers[i].toDouble(),
+                                    color: const Color(0xFF6BB5A6),
+                                    width: 16,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ],
+                              ),
+                          ],
+                          titlesData: FlTitlesData(
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 30,
+                                interval: 1,
+                                getTitlesWidget: (value, meta) {
+                                  const days = [
+                                    'Sen',
+                                    'Sel',
+                                    'Rab',
+                                    'Kam',
+                                    'Jum',
+                                    'Sab',
+                                    'Min',
+                                  ];
+                                  if (value.toInt() < days.length) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 8.0),
+                                      child: Text(
+                                        days[value.toInt()],
+                                        style: GoogleFonts.poppins(
+                                          color: Colors.grey.shade600,
+                                          fontSize: 10,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                  return const Text('');
+                                },
+                              ),
+                            ),
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 40,
+                                interval: 50,
+                                getTitlesWidget: (value, meta) {
+                                  return Text(
+                                    '${value.toInt()}',
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.grey.shade600,
+                                      fontSize: 9,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            topTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                            rightTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                          ),
+                          gridData: FlGridData(
+                            show: true,
+                            drawVerticalLine: false,
+                            drawHorizontalLine: true,
+                            horizontalInterval: 50,
+                            getDrawingHorizontalLine: (value) {
+                              return FlLine(
+                                color: Colors.grey.shade200,
+                                strokeWidth: 1,
+                                dashArray: [3, 3],
+                              );
+                            },
+                          ),
+                          borderData: FlBorderData(show: false),
+                          barTouchData: BarTouchData(
+                            touchTooltipData: BarTouchTooltipData(
+                              getTooltipColor:
+                                  (touchedBarSpot) => Colors.black87,
+                              getTooltipItem: (
+                                group,
+                                groupIndex,
+                                rod,
+                                rodIndex,
+                              ) {
+                                return BarTooltipItem(
+                                  '${weeklyNewUsers[groupIndex]} pengguna baru',
+                                  GoogleFonts.poppins(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 25),
+
+              // Device Statistics
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Statistik Penggunaan Saklar',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      height: 200,
+                      child: LineChart(
+                        LineChartData(
+                          lineBarsData: [
+                            LineChartBarData(
+                              spots: [
+                                for (
+                                  int i = 0;
+                                  i < weeklyActiveDevices.length;
+                                  i++
+                                )
+                                  FlSpot(
+                                    i.toDouble(),
+                                    weeklyActiveDevices[i].toDouble(),
+                                  ),
+                              ],
+                              isCurved: true,
+                              color: const Color(0xFF6BB5A6),
+                              barWidth: 3,
+                              isStrokeCapRound: true,
+                              dotData: FlDotData(show: false),
+                              belowBarData: BarAreaData(
+                                show: true,
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    const Color(0xFF6BB5A6).withOpacity(0.3),
+                                    const Color(0xFF6BB5A6).withOpacity(0.1),
+                                    const Color(0xFF6BB5A6).withOpacity(0.05),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                          titlesData: FlTitlesData(
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 30,
+                                interval: 1,
+                                getTitlesWidget: (value, meta) {
+                                  const days = [
+                                    'Sen',
+                                    'Sel',
+                                    'Rab',
+                                    'Kam',
+                                    'Jum',
+                                    'Sab',
+                                    'Min',
+                                  ];
+                                  if (value.toInt() < days.length) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 8.0),
+                                      child: Text(
+                                        days[value.toInt()],
+                                        style: GoogleFonts.poppins(
+                                          color: Colors.grey.shade600,
+                                          fontSize: 10,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                  return const Text('');
+                                },
+                              ),
+                            ),
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 40,
+                                interval: 200,
+                                getTitlesWidget: (value, meta) {
+                                  return Text(
+                                    '${value.toInt()}',
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.grey.shade600,
+                                      fontSize: 9,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            topTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                            rightTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                          ),
+                          gridData: FlGridData(
+                            show: true,
+                            drawVerticalLine: true,
+                            drawHorizontalLine: true,
+                            verticalInterval: 1,
+                            horizontalInterval: 200,
+                            getDrawingHorizontalLine: (value) {
+                              return FlLine(
+                                color: Colors.grey.shade200,
+                                strokeWidth: 1,
+                                dashArray: [3, 3],
+                              );
+                            },
+                            getDrawingVerticalLine: (value) {
+                              return FlLine(
+                                color: Colors.grey.shade200,
+                                strokeWidth: 1,
+                                dashArray: [3, 3],
+                              );
+                            },
+                          ),
+                          borderData: FlBorderData(show: false),
+                          minX: 0,
+                          maxX: 6,
+                          minY: 0,
+                          maxY: 1000,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 25),
+
+              // Power Consumption Statistics
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Konsumsi Daya (kWh)',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      height: 200,
+                      child: LineChart(
+                        LineChartData(
+                          lineBarsData: [
+                            LineChartBarData(
+                              spots: [
+                                for (
+                                  int i = 0;
+                                  i < weeklyPowerConsumption.length;
+                                  i++
+                                )
+                                  FlSpot(
+                                    i.toDouble(),
+                                    weeklyPowerConsumption[i],
+                                  ),
+                              ],
+                              isCurved: true,
+                              color: Colors.orange,
+                              barWidth: 3,
+                              isStrokeCapRound: true,
+                              dotData: FlDotData(show: true),
+                              belowBarData: BarAreaData(
+                                show: true,
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.orange.withOpacity(0.3),
+                                    Colors.orange.withOpacity(0.1),
+                                    Colors.orange.withOpacity(0.05),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                          titlesData: FlTitlesData(
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 30,
+                                interval: 1,
+                                getTitlesWidget: (value, meta) {
+                                  const days = [
+                                    'Sen',
+                                    'Sel',
+                                    'Rab',
+                                    'Kam',
+                                    'Jum',
+                                    'Sab',
+                                    'Min',
+                                  ];
+                                  if (value.toInt() < days.length) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 8.0),
+                                      child: Text(
+                                        days[value.toInt()],
+                                        style: GoogleFonts.poppins(
+                                          color: Colors.grey.shade600,
+                                          fontSize: 10,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                  return const Text('');
+                                },
+                              ),
+                            ),
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 40,
+                                interval: 10,
+                                getTitlesWidget: (value, meta) {
+                                  return Text(
+                                    '${value.toInt()}',
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.grey.shade600,
+                                      fontSize: 9,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            topTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                            rightTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                          ),
+                          gridData: FlGridData(
+                            show: true,
+                            drawVerticalLine: true,
+                            drawHorizontalLine: true,
+                            verticalInterval: 1,
+                            horizontalInterval: 10,
+                            getDrawingHorizontalLine: (value) {
+                              return FlLine(
+                                color: Colors.grey.shade200,
+                                strokeWidth: 1,
+                                dashArray: [3, 3],
+                              );
+                            },
+                            getDrawingVerticalLine: (value) {
+                              return FlLine(
+                                color: Colors.grey.shade200,
+                                strokeWidth: 1,
+                                dashArray: [3, 3],
+                              );
+                            },
+                          ),
+                          borderData: FlBorderData(show: false),
+                          minX: 0,
+                          maxX: 6,
+                          minY: 30,
+                          maxY: 50,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 25),
+            ],
           ),
-          Text(
-            time,
-            style: GoogleFonts.poppins(
-              fontSize: 10,
-              color: Colors.grey.shade500,
-            ),
+        ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        backgroundColor: Colors.white,
+        selectedItemColor: const Color(0xFF6BB5A6),
+        unselectedItemColor: Colors.grey[600],
+        selectedIconTheme: const IconThemeData(size: 24),
+        unselectedIconTheme: const IconThemeData(size: 22),
+        selectedLabelStyle: GoogleFonts.poppins(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: const Color(0xFF6BB5A6),
+        ),
+        unselectedLabelStyle: GoogleFonts.poppins(
+          fontSize: 10,
+          fontWeight: FontWeight.w500,
+          color: Colors.grey[600],
+        ),
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard_outlined),
+            activeIcon: Icon(Icons.dashboard),
+            label: 'Dashboard',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.analytics_outlined),
+            activeIcon: Icon(Icons.analytics),
+            label: 'Statistic',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Profile',
           ),
         ],
       ),

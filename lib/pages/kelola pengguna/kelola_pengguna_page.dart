@@ -616,7 +616,7 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Admin Smart Switch',
+                      'Admin',
                       style: GoogleFonts.poppins(
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
