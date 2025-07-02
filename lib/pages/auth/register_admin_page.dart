@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:admin_smart_switch/pages/auth/login_admin_page.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:admin_smart_switch/services/firestore_auth_services.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RegisterAdminPage extends StatefulWidget {
   const RegisterAdminPage({super.key});
@@ -18,8 +18,7 @@ class _RegisterAdminPageState extends State<RegisterAdminPage> {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
-
-  final FirestoreService _firestoreService = FirestoreService();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
@@ -85,7 +84,33 @@ class _RegisterAdminPageState extends State<RegisterAdminPage> {
     return true;
   }
 
-  // Fungsi registrasi user dengan Firebase
+  // Simpan data admin ke Firestore
+  Future<void> _saveAdminData({
+    required String userId,
+    required String username,
+    required String email,
+  }) async {
+    try {
+      await _firestore.collection('admins').doc(userId).set({
+        'username': username,
+        'email': email,
+        'role': 'admin',
+        'isActive': true,
+        'permissions': [
+          'manage_users',
+          'manage_switches',
+          'manage_education',
+          'view_statistics',
+        ],
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      throw Exception('Gagal menyimpan data admin: $e');
+    }
+  }
+
+  // Fungsi registrasi admin dengan Firebase - SIMPLIFIED VERSION
   Future<void> _registerUser() async {
     if (!_validateForm()) return;
 
@@ -98,40 +123,32 @@ class _RegisterAdminPageState extends State<RegisterAdminPage> {
     final password = passwordController.text.trim();
 
     try {
-      // Cek apakah username sudah digunakan
-      bool usernameExists = await _firestoreService.isUsernameExists(username);
-      if (usernameExists) {
-        _showSnackBar("Username sudah digunakan");
-        setState(() {
-          _isLoading = false;
-        });
-        return;
-      }
-
-      // Buat akun Firebase Auth
+      // Langsung buat akun Firebase Auth
       UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
 
-      // Simpan data ke Firestore
-      await _firestoreService.saveUserData(
-        userId: userCredential.user!.uid,
-        username: username,
-        email: email,
-      );
-
-      // Update display name
-      await userCredential.user!.updateDisplayName(username);
-
-      // Tampilkan pesan sukses
-      _showSnackBar("Registrasi berhasil!", isSuccess: true);
-
-      // Navigasi ke halaman login
-      await Future.delayed(const Duration(seconds: 1));
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const LoginAdminPage()),
+      if (userCredential.user != null) {
+        // Simpan data admin ke Firestore
+        await _saveAdminData(
+          userId: userCredential.user!.uid,
+          username: username,
+          email: email,
         );
+
+        // Update display name
+        await userCredential.user!.updateDisplayName(username);
+
+        // Tampilkan pesan sukses
+        _showSnackBar("Registrasi admin berhasil!", isSuccess: true);
+
+        // Navigasi ke halaman login admin
+        await Future.delayed(const Duration(seconds: 1));
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const LoginAdminPage()),
+          );
+        }
       }
     } on FirebaseAuthException catch (e) {
       String message = "Terjadi kesalahan";
@@ -268,7 +285,7 @@ class _RegisterAdminPageState extends State<RegisterAdminPage> {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    'Regist Account',
+                    'Regist Admin Account',
                     style: GoogleFonts.oleoScriptSwashCaps(
                       fontSize: 20,
                       color: const Color(0xFF2C5C52),

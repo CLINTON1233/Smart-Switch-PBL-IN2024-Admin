@@ -6,20 +6,16 @@ import 'firebase_options.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const MyApp());
+  runApp(AdminApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  // This widget is the root of your application.
+class AdminApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Smart Switch',
+      title: 'Smart Switch Admin',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.teal),
-      home: const SplashScreen(), // atau halaman awalmu
+      home: SplashScreen(),
     );
   }
 }
