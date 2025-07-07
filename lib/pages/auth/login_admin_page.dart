@@ -1,8 +1,11 @@
-import 'package:admin_smart_switch/pages/auth/register_admin_page.dart';
-import 'package:admin_smart_switch/pages/home/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:admin_smart_switch/pages/auth/register_admin_page.dart';
+import 'package:admin_smart_switch/pages/home/home_page.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 class LoginAdminPage extends StatefulWidget {
   const LoginAdminPage({super.key});
@@ -14,6 +17,7 @@ class LoginAdminPage extends StatefulWidget {
 class _LoginAdminPageState extends State<LoginAdminPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   bool _isLoading = false;
   bool _obscurePassword = true;
@@ -61,11 +65,64 @@ class _LoginAdminPageState extends State<LoginAdminPage> {
     return true;
   }
 
-  void _loginUser() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const HomePage()),
-    );
+  Future<void> _loginUser() async {
+    if (!_validateForm()) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    try {
+      // 1. Pastikan Firebase sudah diinisialisasi
+      await Firebase.initializeApp();
+
+      // 2. Cek apakah email ada di koleksi admins
+      final adminQuery =
+          await _firestore
+              .collection('admins')
+              .where('email', isEqualTo: email)
+              .limit(1)
+              .get();
+
+      if (adminQuery.docs.isEmpty) {
+        _showSnackBar("Email tidak terdaftar sebagai admin");
+        return;
+      }
+
+      final adminData = adminQuery.docs.first.data();
+
+      // 3. Verifikasi password (plaintext)
+      if (adminData['password'] != password) {
+        _showSnackBar("Password salah");
+        return;
+      }
+
+      // 4. Verifikasi status aktif
+      if (adminData['isActive'] != true) {
+        _showSnackBar("Akun admin tidak aktif");
+        return;
+      }
+
+      // 5. Jika verifikasi berhasil, navigasi ke HomePage
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomePage()),
+        );
+        _showSnackBar("Login berhasil", isSuccess: true);
+      }
+    } catch (e) {
+      _showSnackBar("Terjadi kesalahan: ${e.toString()}");
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   void _navigateToRegister() {

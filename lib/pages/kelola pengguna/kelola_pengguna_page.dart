@@ -1,12 +1,15 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:admin_smart_switch/pages/statistic/statistic_page.dart';
 import 'package:admin_smart_switch/pages/auth/login_admin_page.dart';
 import 'package:admin_smart_switch/pages/home/home_page.dart';
 import 'package:admin_smart_switch/pages/kelola%20panduan/kelola_panduan_page.dart';
 import 'package:admin_smart_switch/pages/kelola%20saklar/kelola_saklar_page.dart';
 import 'package:admin_smart_switch/pages/profile/profile_page.dart';
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:firebase_auth/firebase_auth.dart' show UserCredential;
 
 class KelolaPenggunaPage extends StatefulWidget {
   const KelolaPenggunaPage({super.key});
@@ -15,74 +18,112 @@ class KelolaPenggunaPage extends StatefulWidget {
   State<KelolaPenggunaPage> createState() => _KelolaPenggunaPageState();
 }
 
-class User {
+class AppUser {
   final String id;
-  String username;
-  String email;
-  String password;
-  DateTime joinDate;
+  final String username;
+  final String email;
+  final String? password;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final String role;
+  final bool isActive;
 
-  User({
+  AppUser({
     required this.id,
     required this.username,
     required this.email,
-    required this.password,
-    required this.joinDate,
+    this.password,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.role,
+    required this.isActive,
   });
+
+  factory AppUser.fromFirestore(DocumentSnapshot doc) {
+    try {
+      // Pastikan data tidak null dan bertipe Map<String, dynamic>
+      if (doc.data() == null || !(doc.data() is Map)) {
+        throw Exception('Document data is null or not a Map');
+      }
+
+      final data = doc.data() as Map<String, dynamic>;
+
+      // Handle null fields dengan nilai default
+      return AppUser(
+        id: doc.id,
+        username: data['username']?.toString() ?? 'No Username',
+        email: data['email']?.toString() ?? 'no-email@example.com',
+        password: data['password']?.toString(),
+        createdAt: _parseDateTime(data['createdAt']),
+        updatedAt: _parseDateTime(data['updatedAt']),
+        role: data['role']?.toString() ?? 'user',
+        isActive: data['isActive'] as bool? ?? true,
+      );
+    } catch (e) {
+      print('Error parsing user ${doc.id}: $e');
+      // Return default user dengan error flag
+      return AppUser(
+        id: doc.id,
+        username: 'Error User',
+        email: 'error@example.com',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        role: 'error',
+        isActive: false,
+      );
+    }
+  }
+
+  // Helper method untuk parsing DateTime
+  static DateTime _parseDateTime(dynamic date) {
+    if (date == null) return DateTime.now();
+    if (date is Timestamp) return date.toDate();
+    if (date is String) return DateTime.tryParse(date) ?? DateTime.now();
+    return DateTime.now();
+  }
 }
 
 class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   int _selectedIndex = 0;
 
-  // Controllers for form
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _searchController = TextEditingController();
 
-  // Sample user data
-  List<User> _users = [
-    User(
-      id: '1',
-      username: 'johndoe',
-      email: 'john@gmail.com',
-      password: '••••••••',
-      joinDate: DateTime(2021, 12, 8),
-    ),
-    User(
-      id: '2',
-      username: 'janedoe',
-      email: 'jane@gmail.com',
-      password: '••••••••',
-      joinDate: DateTime(2021, 11, 15),
-    ),
-    User(
-      id: '3',
-      username: 'bobsmith',
-      email: 'bob@gmail.com',
-      password: '••••••••',
-      joinDate: DateTime(2022, 1, 20),
-    ),
-    User(
-      id: '4',
-      username: 'alicecooper',
-      email: 'alice@gmail.com',
-      password: '••••••••',
-      joinDate: DateTime(2021, 10, 5),
-    ),
-  ];
-
-  List<User> _filteredUsers = [];
+  List<AppUser> _users = [];
+  List<AppUser> _filteredUsers = [];
   bool _isEditing = false;
   String? _editingUserId;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _filteredUsers = List.from(_users);
+    _testFirestoreConnection(); // Test koneksi dulu
+    _loadUsers();
     _searchController.addListener(_filterUsers);
+  }
+
+  // Tambahkan method ini di dalam class _KelolaPenggunaPageState
+  Future<void> _testFirestoreConnection() async {
+    try {
+      await _firestore.collection('users').limit(1).get();
+      print('Koneksi Firestore berhasil');
+    } catch (e) {
+      print('Gagal terhubung ke Firestore: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal terhubung ke database'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -92,6 +133,44 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
     _passwordController.dispose();
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadUsers() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      QuerySnapshot querySnapshot = await _firestore.collection('users').get();
+
+      print('Jumlah dokumen ditemukan: ${querySnapshot.docs.length}');
+
+      List<AppUser> loadedUsers = [];
+      for (var doc in querySnapshot.docs) {
+        try {
+          loadedUsers.add(AppUser.fromFirestore(doc));
+        } catch (e) {
+          print('Error parsing document ${doc.id}: $e');
+        }
+      }
+
+      setState(() {
+        _users = loadedUsers;
+        _filteredUsers = List.from(_users);
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading users: $e');
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal memuat data pengguna: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   void _filterUsers() {
@@ -121,8 +200,6 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
     });
 
     if (index == 0) {
-      // Stay on admin home
-    } else if (index == 1) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomePage()),
@@ -140,7 +217,7 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
     }
   }
 
-  void _showAddEditUserDialog({User? user}) {
+  void _showAddEditUserDialog({AppUser? user}) {
     _isEditing = user != null;
     _editingUserId = user?.id;
 
@@ -349,69 +426,124 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
     );
   }
 
-  void _saveUser() {
-    if (_usernameController.text.isEmpty ||
-        _emailController.text.isEmpty ||
-        (!_isEditing && _passwordController.text.isEmpty)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Semua field harus diisi!',
-            style: GoogleFonts.poppins(),
-          ),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
+  Future<void> _saveUser() async {
+    // Validasi input
+    if (_usernameController.text.isEmpty || _emailController.text.isEmpty) {
+      _showErrorSnackbar('Username dan email harus diisi');
       return;
     }
 
-    setState(() {
+    if (!_isEditing && _passwordController.text.isEmpty) {
+      _showErrorSnackbar('Password harus diisi untuk user baru');
+      return;
+    }
+
+    if (!RegExp(
+      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+    ).hasMatch(_emailController.text)) {
+      _showErrorSnackbar('Format email tidak valid');
+      return;
+    }
+
+    try {
       if (_isEditing) {
-        // Update existing user
-        int index = _users.indexWhere((user) => user.id == _editingUserId);
-        if (index != -1) {
-          _users[index].username = _usernameController.text;
-          _users[index].email = _emailController.text;
-          if (_passwordController.text.isNotEmpty) {
-            _users[index].password = '••••••••';
-          }
-        }
+        await _updateExistingUser();
       } else {
-        // Add new user
-        _users.add(
-          User(
-            id: DateTime.now().millisecondsSinceEpoch.toString(),
-            username: _usernameController.text,
-            email: _emailController.text,
-            password: '••••••••',
-            joinDate: DateTime.now(),
+        await _registerNewUser();
+      }
+
+      await _loadUsers();
+      if (mounted) Navigator.of(context).pop();
+    } catch (e) {
+      print('Error saving user: $e');
+      _showErrorSnackbar('Gagal menyimpan: ${e.toString()}');
+    }
+  }
+
+  void _showErrorSnackbar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message), backgroundColor: Colors.red),
+      );
+    }
+  }
+
+  Future<void> _updateExistingUser() async {
+    final updateData = {
+      'username': _usernameController.text,
+      'email': _emailController.text,
+      'updatedAt': Timestamp.now(),
+    };
+
+    await _firestore.collection('users').doc(_editingUserId).update(updateData);
+
+    if (_passwordController.text.isNotEmpty) {
+      try {
+        User? user = _auth.currentUser;
+        if (user != null && user.email == _emailController.text) {
+          await user.updatePassword(_passwordController.text);
+        }
+      } catch (e) {
+        print('Error updating password: $e');
+      }
+    }
+  }
+
+  Future<void> _registerNewUser() async {
+    try {
+      // 1. Buat user di Firebase Auth
+      UserCredential userCredential = await _auth
+          .createUserWithEmailAndPassword(
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
+          );
+
+      // 2. Simpan data tambahan ke Firestore
+      await _firestore.collection('users').doc(userCredential.user!.uid).set({
+        'username': _usernameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'createdAt': FieldValue.serverTimestamp(), // Gunakan server timestamp
+        'updatedAt': FieldValue.serverTimestamp(),
+        'role': 'user',
+        'isActive': true,
+      });
+
+      // 3. Update UI
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('User berhasil didaftarkan!'),
+            backgroundColor: Colors.green,
           ),
         );
       }
-      _filterUsers();
-    });
+    } on FirebaseAuthException catch (e) {
+      String errorMessage = 'Pendaftaran gagal';
+      if (e.code == 'weak-password') {
+        errorMessage = 'Password terlalu lemah';
+      } else if (e.code == 'email-already-in-use') {
+        errorMessage = 'Email sudah terdaftar';
+      }
 
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          _isEditing
-              ? 'Pengguna berhasil diperbarui!'
-              : 'Pengguna berhasil ditambahkan!',
-          style: GoogleFonts.poppins(),
-        ),
-        backgroundColor: _isEditing ? Colors.orange : const Color(0xFF6BB5A6),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
+        );
+      }
+    } catch (e) {
+      print('Error during registration: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Terjadi kesalahan sistem'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
-  void _showDeleteConfirmationDialog(User user) {
+  void _showDeleteConfirmationDialog(AppUser user) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -510,24 +642,41 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
     );
   }
 
-  void _deleteUser(String userId) {
-    String deletedUsername =
-        _users.firstWhere((user) => user.id == userId).username;
-    setState(() {
-      _users.removeWhere((user) => user.id == userId);
-      _filterUsers();
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Pengguna "$deletedUsername" berhasil dihapus',
-          style: GoogleFonts.poppins(fontSize: 14),
+  Future<void> _deleteUser(String userId) async {
+    try {
+      // Delete from Firestore
+      await _firestore.collection('users').doc(userId).delete();
+
+      // Delete from Authentication (optional)
+      // await _auth.currentUser?.delete(); // Hati-hati dengan ini
+
+      // Refresh user list
+      await _loadUsers();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Pengguna berhasil dihapus',
+            style: GoogleFonts.poppins(fontSize: 14),
+          ),
+          backgroundColor: Colors.green[600],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal menghapus pengguna: ${e.toString()}'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    }
   }
 
   void _showLogoutConfirmationDialog() {
@@ -879,285 +1028,298 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
               ),
             ),
 
+            // Loading Indicator
+            if (_isLoading)
+              const Expanded(
+                child: Center(
+                  child: CircularProgressIndicator(color: Color(0xFF6BB5A6)),
+                ),
+              ),
+
             // Table Header
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.grey[50],
-                border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
+            if (!_isLoading)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
+                ),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 50,
+                      child: Text(
+                        'ID',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        'Username',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        'Email',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 100,
+                      child: Text(
+                        'Tanggal Bergabung',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 80,
+                      child: Text(
+                        'Action',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 50,
-                    child: Text(
-                      'ID',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[700],
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      'Username',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[700],
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      'Email',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[700],
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 100,
-                    child: Text(
-                      'Tanggal Bergabung',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[700],
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 80,
-                    child: Text(
-                      'Action',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[700],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
 
             // Table Content
-            Expanded(
-              child:
-                  _filteredUsers.isEmpty
-                      ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(24),
-                              decoration: BoxDecoration(
-                                color: Colors.grey[100],
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.people_outline,
-                                size: 48,
-                                color: Colors.grey[400],
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Tidak ada pengguna ditemukan',
-                              style: GoogleFonts.poppins(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Silakan tambah pengguna baru atau ubah pencarian',
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                color: Colors.grey[500],
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                      : ListView.builder(
-                        padding: EdgeInsets.zero,
-                        itemCount: _filteredUsers.length,
-                        itemBuilder: (context, index) {
-                          final user = _filteredUsers[index];
-                          return Container(
-                            margin: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
+            if (!_isLoading)
+              Expanded(
+                child:
+                    _filteredUsers.isEmpty
+                        ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(24),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[100],
+                                  shape: BoxShape.circle,
                                 ),
-                              ],
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Row(
-                                children: [
-                                  // ID
-                                  SizedBox(
-                                    width: 50,
-                                    child: Text(
-                                      user.id,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
-                                  ),
-                                  // Username
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          user.username,
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.black87,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          'User ID: ${user.id}',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 12,
-                                            color: Colors.grey[500],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  // Email
-                                  Expanded(
-                                    child: Text(
-                                      user.email,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 14,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
-                                  ),
-                                  // Join Date
-                                  SizedBox(
-                                    width: 100,
-                                    child: Text(
-                                      '${user.joinDate.day.toString().padLeft(2, '0')}-${user.joinDate.month.toString().padLeft(2, '0')}-${user.joinDate.year}',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 12,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                  ),
-                                  // Action Buttons
-                                  SizedBox(
-                                    width: 80,
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        GestureDetector(
-                                          onTap:
-                                              () => _showAddEditUserDialog(
-                                                user: user,
-                                              ),
-                                          child: Container(
-                                            padding: const EdgeInsets.all(6),
-                                            decoration: BoxDecoration(
-                                              color: Colors.orange.withOpacity(
-                                                0.1,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(6),
-                                            ),
-                                            child: Icon(
-                                              Icons.edit,
-                                              size: 16,
-                                              color: Colors.orange[700],
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        GestureDetector(
-                                          onTap:
-                                              () =>
-                                                  _showDeleteConfirmationDialog(
-                                                    user,
-                                                  ),
-                                          child: Container(
-                                            padding: const EdgeInsets.all(6),
-                                            decoration: BoxDecoration(
-                                              color: Colors.red.withOpacity(
-                                                0.1,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(6),
-                                            ),
-                                            child: Icon(
-                                              Icons.delete,
-                                              size: 16,
-                                              color: Colors.red[700],
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                child: Icon(
+                                  Icons.people_outline,
+                                  size: 48,
+                                  color: Colors.grey[400],
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Tidak ada pengguna ditemukan',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Silakan tambah pengguna baru atau ubah pencarian',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  color: Colors.grey[500],
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                        : ListView.builder(
+                          padding: EdgeInsets.zero,
+                          itemCount: _filteredUsers.length,
+                          itemBuilder: (context, index) {
+                            final user = _filteredUsers[index];
+                            return Container(
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
                                   ),
                                 ],
                               ),
-                            ),
-                          );
-                        },
-                      ),
-            ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Row(
+                                  children: [
+                                    // ID
+                                    SizedBox(
+                                      width: 50,
+                                      child: Text(
+                                        user.id.substring(0, 4),
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ),
+                                    // Username
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            user.username,
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.black87,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            'Role: ${user.role}',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 12,
+                                              color: Colors.grey[500],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    // Email
+                                    Expanded(
+                                      child: Text(
+                                        user.email,
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 14,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ),
+                                    // Join Date
+                                    SizedBox(
+                                      width: 100,
+                                      child: Text(
+                                        '${user.createdAt.day.toString().padLeft(2, '0')}-${user.createdAt.month.toString().padLeft(2, '0')}-${user.createdAt.year}',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 12,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ),
+                                    // Action Buttons
+                                    SizedBox(
+                                      width: 80,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          GestureDetector(
+                                            onTap:
+                                                () => _showAddEditUserDialog(
+                                                  user: user,
+                                                ),
+                                            child: Container(
+                                              padding: const EdgeInsets.all(6),
+                                              decoration: BoxDecoration(
+                                                color: Colors.orange
+                                                    .withOpacity(0.1),
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
+                                              ),
+                                              child: Icon(
+                                                Icons.edit,
+                                                size: 16,
+                                                color: Colors.orange[700],
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          GestureDetector(
+                                            onTap:
+                                                () =>
+                                                    _showDeleteConfirmationDialog(
+                                                      user,
+                                                    ),
+                                            child: Container(
+                                              padding: const EdgeInsets.all(6),
+                                              decoration: BoxDecoration(
+                                                color: Colors.red.withOpacity(
+                                                  0.1,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
+                                              ),
+                                              child: Icon(
+                                                Icons.delete,
+                                                size: 16,
+                                                color: Colors.red[700],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+              ),
 
             // Summary Footer
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 4,
-                    offset: const Offset(0, -2),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Total Pengguna: ${_filteredUsers.length} pengguna',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey[700],
+            if (!_isLoading)
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 4,
+                      offset: const Offset(0, -2),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Total Pengguna: ${_filteredUsers.length} pengguna',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
           ],
         ),
       ),

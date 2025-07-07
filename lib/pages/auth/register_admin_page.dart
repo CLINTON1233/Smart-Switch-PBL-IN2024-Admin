@@ -4,6 +4,7 @@ import 'package:admin_smart_switch/pages/auth/login_admin_page.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 class RegisterAdminPage extends StatefulWidget {
   const RegisterAdminPage({super.key});
@@ -32,7 +33,6 @@ class _RegisterAdminPageState extends State<RegisterAdminPage> {
     super.dispose();
   }
 
-  // Show SnackBar dengan pesan
   void _showSnackBar(String message, {bool isSuccess = false}) {
     if (!mounted) return;
 
@@ -46,7 +46,6 @@ class _RegisterAdminPageState extends State<RegisterAdminPage> {
     );
   }
 
-  // Validasi form input
   bool _validateForm() {
     final username = usernameController.text.trim();
     final email = emailController.text.trim();
@@ -84,34 +83,7 @@ class _RegisterAdminPageState extends State<RegisterAdminPage> {
     return true;
   }
 
-  // Simpan data admin ke Firestore
-  Future<void> _saveAdminData({
-    required String userId,
-    required String username,
-    required String email,
-  }) async {
-    try {
-      await _firestore.collection('admins').doc(userId).set({
-        'username': username,
-        'email': email,
-        'role': 'admin',
-        'isActive': true,
-        'permissions': [
-          'manage_users',
-          'manage_switches',
-          'manage_education',
-          'view_statistics',
-        ],
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-    } catch (e) {
-      throw Exception('Gagal menyimpan data admin: $e');
-    }
-  }
-
-  // Fungsi registrasi admin dengan Firebase - SIMPLIFIED VERSION
-  Future<void> _registerUser() async {
+  Future<void> _registerAdmin() async {
     if (!_validateForm()) return;
 
     setState(() {
@@ -123,56 +95,55 @@ class _RegisterAdminPageState extends State<RegisterAdminPage> {
     final password = passwordController.text.trim();
 
     try {
-      // Langsung buat akun Firebase Auth
-      UserCredential userCredential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(email: email, password: password);
+      // 1. Pastikan Firebase sudah diinisialisasi
+      await Firebase.initializeApp();
 
-      if (userCredential.user != null) {
-        // Simpan data admin ke Firestore
-        await _saveAdminData(
-          userId: userCredential.user!.uid,
-          username: username,
-          email: email,
+      // 2. Cek apakah email sudah terdaftar di Firestore
+      final emailCheck =
+          await _firestore
+              .collection('admins')
+              .where('email', isEqualTo: email)
+              .limit(1)
+              .get();
+
+      if (emailCheck.docs.isNotEmpty) {
+        _showSnackBar("Email sudah terdaftar");
+        return;
+      }
+
+      // 3. Buat dokumen admin baru di Firestore
+      final newAdminRef = _firestore.collection('admins').doc();
+
+      final adminData = {
+        'username': username,
+        'email': email,
+        'password':
+            password, // PERINGATAN: Simpan password plaintext tidak aman
+        'role': 'admin',
+        'isActive': true,
+        'permissions': [
+          'manage_users',
+          'manage_switches',
+          'manage_education',
+          'view_statistics',
+        ],
+        'createdAt': DateTime.now().toIso8601String(),
+        'updatedAt': DateTime.now().toIso8601String(),
+      };
+
+      await newAdminRef.set(adminData);
+
+      _showSnackBar("Registrasi admin berhasil!", isSuccess: true);
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginAdminPage()),
         );
-
-        // Update display name
-        await userCredential.user!.updateDisplayName(username);
-
-        // Tampilkan pesan sukses
-        _showSnackBar("Registrasi admin berhasil!", isSuccess: true);
-
-        // Navigasi ke halaman login admin
-        await Future.delayed(const Duration(seconds: 1));
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const LoginAdminPage()),
-          );
-        }
       }
-    } on FirebaseAuthException catch (e) {
-      String message = "Terjadi kesalahan";
-
-      switch (e.code) {
-        case 'email-already-in-use':
-          message = "Email sudah digunakan";
-          break;
-        case 'invalid-email':
-          message = "Email tidak valid";
-          break;
-        case 'weak-password':
-          message = "Password terlalu lemah";
-          break;
-        case 'operation-not-allowed':
-          message = "Operasi tidak diizinkan";
-          break;
-        default:
-          message = "Terjadi kesalahan: ${e.message}";
-      }
-
-      _showSnackBar(message);
     } catch (e) {
-      _showSnackBar("Terjadi kesalahan: $e");
+      _showSnackBar("Terjadi kesalahan: ${e.toString()}");
+      debugPrint("Error detail: ${e.toString()}");
     } finally {
       if (mounted) {
         setState(() {
@@ -204,7 +175,6 @@ class _RegisterAdminPageState extends State<RegisterAdminPage> {
       body: SafeArea(
         child: Stack(
           children: [
-            // Background decorations
             Positioned(
               top: 0,
               left: 0,
@@ -272,7 +242,6 @@ class _RegisterAdminPageState extends State<RegisterAdminPage> {
               ),
             ),
 
-            // Main content
             SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(40, 125, 40, 300),
               child: Column(
@@ -330,7 +299,7 @@ class _RegisterAdminPageState extends State<RegisterAdminPage> {
                     width: double.infinity,
                     height: 45,
                     child: ElevatedButton(
-                      onPressed: _isLoading ? null : _registerUser,
+                      onPressed: _isLoading ? null : _registerAdmin,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _isLoading ? Colors.grey : Colors.teal,
                         shape: RoundedRectangleBorder(
@@ -380,7 +349,6 @@ class _RegisterAdminPageState extends State<RegisterAdminPage> {
               ),
             ),
 
-            // Loading overlay
             if (_isLoading)
               Container(
                 color: Colors.black.withOpacity(0.3),
